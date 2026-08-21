@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northstar Homes — Sales Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <span class="star">✦</span>
+        <div>
+          <h1>Northstar Homes</h1>
+          <p class="sub">Northstar One · Sector 79, Gurugram</p>
+        </div>
+      </div>
+      <div class="status">
+        <span id="backend" class="pill">connecting…</span>
+      </div>
+    </header>
+
+    <section id="chat" class="chat" aria-live="polite">
+      <div class="msg agent">
+        <p>Hi, this is Ava from Northstar Homes, about Northstar One in Sector 79, Gurugram. Are you looking at a two BHK or a three BHK?</p>
+      </div>
+    </section>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <input
+        id="input"
+        type="text"
+        placeholder="Type in English, Hindi or Hinglish…"
+        aria-label="Your message"
+        maxlength="2000"
+      />
+      <button id="send" type="submit">Send</button>
+    </form>
+
+    <div class="toolbar">
+      <label class="toggle">
+        <input type="checkbox" id="failToggle" />
+        <span>Simulate booking failure</span>
+      </label>
+      <div class="actions">
+        <button id="resetBtn" type="button" class="ghost">New chat</button>
+        <button id="endBtn" type="button">End chat &amp; see analytics</button>
+      </div>
+    </div>
+
+    <section id="analytics" class="analytics hidden">
+      <h2>Post-conversation analytics</h2>
+      <pre id="analyticsJson"></pre>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

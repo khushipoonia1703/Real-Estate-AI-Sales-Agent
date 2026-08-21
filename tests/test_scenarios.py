@@ -9,26 +9,34 @@ Run offline:  LLM_MOCK=1 pytest -q      (default; no key needed)
 Run live:     LIVE_TESTS=1 GROQ_API_KEY=... pytest -q
 
 Each scenario appends its input, expectation and actual output to
-`scenario_report.md`, written when the run finishes.
+`scenario_report.md` in the project root, written when the run finishes.
 """
 
 from __future__ import annotations
 
 import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-# Mock mode must be decided before main.py reads its settings.
+# Both of these must be decided before config.py reads the environment.
 LIVE = os.getenv("LIVE_TESTS", "").strip() in {"1", "true", "yes"}
 os.environ["LLM_MOCK"] = "0" if LIVE else "1"
+# Never let a test run overwrite the committed data/conversations.json.
+os.environ.setdefault(
+    "CONVERSATIONS_PATH",
+    str(Path(tempfile.gettempdir()) / "northstar-test-conversations.json"),
+)
 
 import pytest  # noqa: E402
 
 import main  # noqa: E402
-from main import Session  # noqa: E402
+from models import schemas  # noqa: E402
+from services import analytics_service, booking_service, chat_service  # noqa: E402
+from storage.conversation_store import Session, store  # noqa: E402
 
-REPORT_PATH = Path(__file__).parent / "scenario_report.md"
+REPORT_PATH = Path(__file__).resolve().parent.parent / "scenario_report.md"
 
 # --------------------------------------------------------------------------- #
 # Helpers
@@ -65,11 +73,11 @@ RESULTS: List[Dict[str, object]] = []
 @pytest.fixture(autouse=True)
 def _clean_state():
     """Every test starts from an empty session store and an empty calendar."""
-    main.store.clear()
-    main.reset_calendar()
+    store.clear()
+    booking_service.reset_calendar()
     yield
-    main.store.clear()
-    main.reset_calendar()
+    store.clear()
+    booking_service.reset_calendar()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -115,11 +123,11 @@ def run_scenario(
     extra: str = "",
 ) -> Tuple[Session, List[str]]:
     """Play a conversation and record it for the report."""
-    session = main.store.get_or_create(scenario_id)
+    session = store.get_or_create(scenario_id)
     session.force_booking_failure = force_booking_failure
     replies: List[str] = []
     for message in inputs:
-        replies.append(main.handle_turn(session, message).reply)
+        replies.append(chat_service.handle_turn(session, message, main.llm_chat).reply)
     ALL_REPLIES.extend(replies)
     RESULTS.append(
         {
@@ -371,7 +379,7 @@ def test_contact_later_is_captured_as_follow_up():
     )
     for reply in replies:
         assert_voice_safe(reply)
-    data = main.analyse(session)
+    data = main.analyse_session(session)
     assert data["follow_up_required"] is True
     assert data["do_not_contact"] is False
 
@@ -404,11 +412,11 @@ def test_opt_out_stops_everything():
     assert not re.search(r"site visit|book|crore|weekend|offer", first), "kept selling"
     assert session.profile.do_not_contact is True
 
-    data = main.analyse(session)
+    data = main.analyse_session(session)
     assert data["do_not_contact"] is True
     assert data["interest_level"] == "opted_out"
     assert data["follow_up_required"] is False
-    assert data["next_action"] == main.DNC_NEXT_ACTION
+    assert data["next_action"] == schemas.DNC_NEXT_ACTION
 
 
 # --------------------------------------------------------------------------- #
@@ -443,7 +451,7 @@ def test_site_visit_booking_succeeds_and_is_confirmed():
     assert session.profile.phone == "9876543210"
     assert re.search(r"saturday|शनिवार", replies[-1], re.IGNORECASE)
 
-    data = main.analyse(session)
+    data = main.analyse_session(session)
     assert data["site_visit_status"] == "booked"
     assert data["contact"]["phone"] == "9876543210"
     assert data["interest_level"] == "high"
@@ -475,7 +483,7 @@ def test_booking_failure_is_never_reported_as_success():
         r"another|different|alternative|colleague|call you|dusra|team|टीम", final
     ), "offered no way forward"
 
-    data = main.analyse(session)
+    data = main.analyse_session(session)
     assert data["site_visit_status"] == "booking_failed"
     assert data["follow_up_required"] is True
 
@@ -493,7 +501,7 @@ def test_human_escalation_on_request():
     assert_voice_safe(replies[0])
     assert re.search(r"manager|colleague|team|call you|मैनेजर", reply)
     assert not re.search(r"not available|cannot connect|unable to", reply)
-    assert main.analyse(session)["escalated_to_human"] is True
+    assert main.analyse_session(session)["escalated_to_human"] is True
 
 
 # --------------------------------------------------------------------------- #
@@ -546,16 +554,16 @@ def test_analytics_matches_the_schema():
         "configuration, the objection recorded, and a concrete next_action.",
         extra="all schema keys present with valid enums",
     )
-    data = main.analyse(session)
+    data = main.analyse_session(session)
 
-    assert set(data) == set(main.SCHEMA_KEYS)
-    assert data["language"] in main.LANGUAGES
-    assert data["configuration_interest"] in main.CONFIGURATIONS
-    assert data["purpose"] in main.PURPOSES
-    assert data["interest_level"] in main.INTEREST_LEVELS
-    assert data["qualification_status"] in main.QUALIFICATION
-    assert data["site_visit_status"] in main.VISIT_STATUSES
-    assert all(o in main.OBJECTIONS for o in data["objections_raised"])
+    assert set(data) == set(schemas.SCHEMA_KEYS)
+    assert data["language"] in schemas.LANGUAGES
+    assert data["configuration_interest"] in schemas.CONFIGURATIONS
+    assert data["purpose"] in schemas.PURPOSES
+    assert data["interest_level"] in schemas.INTEREST_LEVELS
+    assert data["qualification_status"] in schemas.QUALIFICATION
+    assert data["site_visit_status"] in schemas.VISIT_STATUSES
+    assert all(o in schemas.OBJECTIONS for o in data["objections_raised"])
     assert isinstance(data["follow_up_required"], bool)
     assert isinstance(data["do_not_contact"], bool)
     assert isinstance(data["escalated_to_human"], bool)
@@ -574,7 +582,7 @@ def test_analytics_never_invents_missing_fields():
         "With nothing shared, budget, contact and site-visit datetime stay null "
         "and purpose stays unknown.",
     )
-    data = main.analyse(session)
+    data = main.analyse_session(session)
     assert data["budget"] is None
     assert data["contact"]["name"] is None
     assert data["contact"]["phone"] is None
@@ -599,8 +607,8 @@ def test_analytics_coerces_a_hostile_model_response():
         "contact": {"name": "  ", "phone": "98-765 43210"},
         "next_action": None,
     }
-    data = main.coerce(junk)
-    assert set(data) == set(main.SCHEMA_KEYS)
+    data = analytics_service.coerce(junk)
+    assert set(data) == set(schemas.SCHEMA_KEYS)
     assert data["language"] == "english"
     assert data["configuration_interest"] is None
     assert data["purpose"] == "unknown"
@@ -618,19 +626,19 @@ def test_analytics_coerces_a_hostile_model_response():
 
 
 def test_booking_simulator_paths():
-    ok = main.simulate_booking("Rahul Verma", "9876543210", "Saturday 5 pm")
+    ok = booking_service.simulate_booking("Rahul Verma", "9876543210", "Saturday 5 pm")
     assert ok.ok and ok.status == "booked" and ok.confirmation_id
 
-    same_slot = main.simulate_booking("Someone Else", "9812345678", "saturday 5 PM")
+    same_slot = booking_service.simulate_booking("Someone Else", "9812345678", "saturday 5 PM")
     assert not same_slot.ok and same_slot.reason_code == "slot_taken"
 
-    missing = main.simulate_booking("Rahul", "", "Sunday 11 am")
+    missing = booking_service.simulate_booking("Rahul", "", "Sunday 11 am")
     assert not missing.ok and missing.reason_code == "missing_details"
 
-    same_day = main.simulate_booking("Rahul", "9876543210", "today at 6 pm")
+    same_day = booking_service.simulate_booking("Rahul", "9876543210", "today at 6 pm")
     assert not same_day.ok and same_day.reason_code == "slot_unavailable"
 
-    forced = main.simulate_booking(
+    forced = booking_service.simulate_booking(
         "Rahul", "9876543210", "Monday 3 pm", force_failure=True
     )
     assert not forced.ok and forced.status == "booking_failed"
@@ -639,14 +647,14 @@ def test_booking_simulator_paths():
 
 def test_control_token_is_parsed_and_never_leaks():
     raw = 'Booking that now.\n[[BOOK name="Rahul Verma"; phone="9876543210"; when="Saturday 5 pm"]]'
-    parsed = main.extract_booking_request(raw)
+    parsed = chat_service.extract_booking_request(raw)
     assert parsed == {"name": "Rahul Verma", "phone": "9876543210", "when": "Saturday 5 pm"}
-    assert main.clean_reply(raw) == "Booking that now."
+    assert chat_service.clean_reply(raw) == "Booking that now."
 
 
 def test_clean_reply_strips_markup_and_emoji():
     messy = "**Great!** \n- Two BHK\n- Three BHK\n# Heading\nSee you 😊"
-    cleaned = main.clean_reply(messy)
+    cleaned = chat_service.clean_reply(messy)
     assert cleaned == "Great! Two BHK Three BHK Heading See you"
 
 
@@ -687,7 +695,7 @@ def test_api_chat_end_and_analytics_endpoints():
     assert "one point three five crore" in second["reply"].lower()
 
     ended = client.post("/end", json={"session_id": session_id}).json()
-    assert set(ended["analytics"]) == set(main.SCHEMA_KEYS)
+    assert set(ended["analytics"]) == set(schemas.SCHEMA_KEYS)
 
     on_demand = client.get(f"/analytics/{session_id}").json()
     assert on_demand["analytics"]["configuration_interest"] == "2BHK"

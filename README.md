@@ -6,7 +6,7 @@ She holds a natural conversation in **English, Hindi and Hinglish**, answers onl
 
 FastAPI backend, Groq for inference, a single-page chat UI, no build step, no database.
 
-> **This is a prompt-engineering project.** `system_prompt.md` is the product. The code exists to make that prompt observable, testable and demonstrable — not the other way around.
+> **This is a prompt-engineering project.** The prompt in `prompts/system_prompt.py` is the product. The code exists to make that prompt observable, testable and demonstrable — not the other way around.
 
 ---
 
@@ -36,15 +36,37 @@ Open <http://localhost:8000>, chat in any of the three languages, then click **E
 ### Files
 
 ```
-main.py            the entire application: routes, Groq client, session memory,
-                   booking simulation, agent orchestration, analytics extraction
-system_prompt.md   the agent's brain — the actual deliverable
-index.html         the chat UI (CSS + JS inline, no framework, no build)
-test_bot.py        scenario tests: input / expected behaviour / actual output
+main.py                          FastAPI app + routes, the Groq client, and the
+                                 deterministic offline mock. The composition root:
+                                 it injects the LLM into the services.
+config.py                        Settings, get_settings(), all env reading
+
+prompts/system_prompt.py         SYSTEM_PROMPT — the agent's brain, the deliverable
+
+services/chat_service.py         language detection, intent vocabulary, message
+                                 parsing, profile learning, and one turn of the agent
+services/booking_service.py      simulate_booking() and its failure rules
+services/analytics_service.py    the analytics prompt, schema coercion, ground-truth
+                                 overrides, and the rule-based fallback
+
+models/schemas.py                request/response models + the analytics schema
+storage/conversation_store.py    Session, the store, and JSON persistence
+data/conversations.json          sessions on disk, so a restart loses nothing
+
+frontend/index.html              the chat UI
+frontend/style.css
+frontend/script.js
+
+tests/test_scenarios.py          input / expected behaviour / actual output
 requirements.txt
-.env.example       placeholders only; .env is git-ignored and never committed
-README.md          this file
+.env.example                     placeholders only; .env is git-ignored
+README.md                        this file
 ```
+
+**Dependency direction is one-way.** No service imports `main`; `main` imports the
+services and passes `llm_chat` into them. That is what lets the entire agent run
+against the offline mock without touching a network, and what would let you swap
+the provider by editing one function.
 
 Running the tests also writes `scenario_report.md` — a readable input / expected / actual table for every scenario.
 
@@ -59,6 +81,7 @@ Running the tests also writes `scenario_report.md` — a readable input / expect
 | `LLM_TEMPERATURE` | `0.4` | Sampling temperature. |
 | `LLM_MAX_TOKENS` | `400` | Keeps turns short — a voice-safety measure. |
 | `BOOKING_FORCE_FAILURE` | `0` | `1` makes every booking fail, to demo the failure path. |
+| `CONVERSATIONS_PATH` | `data/conversations.json` | Where sessions are persisted. |
 
 ### API
 
@@ -99,7 +122,7 @@ We know the project is in Sector 79, so the agent is allowed to talk about the a
 
 Distance and connectivity claims are the most over-claimed thing in Indian real estate and a wrong one is a misleading advertisement, so a specific question ("how far is the metro?") is handled exactly like any other unknown: no number, offer to have the team confirm, and offer the site visit — where the customer judges the drive themselves.
 
-To let the agent name real places, add them to the **VERIFIED LANDMARKS** list in `system_prompt.md` §1.1. It ships empty, and anything not on it stays unknown. Add names only, no distances — traffic makes those wrong.
+To let the agent name real places, add them to the **VERIFIED LANDMARKS** list in `prompts/system_prompt.py` §1.1. It ships empty, and anything not on it stays unknown. Add names only, no distances — traffic makes those wrong.
 
 ### Non-negotiable guardrails
 
@@ -126,7 +149,7 @@ To let the agent name real places, add them to the **VERIFIED LANDMARKS** list i
 
 ### 3.2 System-prompt architecture
 
-`system_prompt.md` is composed of labelled sections so it can be reasoned about, diffed and tested:
+`SYSTEM_PROMPT` is composed of labelled sections so it can be reasoned about, diffed and tested:
 
 1. **Role** — who Ava is, channel-agnostic, warm and brief.
 2. **Prime directive** — the closed fact sheet, plus an explicit list of everything she does *not* know and must never estimate.
@@ -207,7 +230,7 @@ The agent's **only tool call** is a control line it appends to a reply once the 
 [[BOOK name="Rahul Verma"; phone="9876543210"; when="Saturday 5 pm"]]
 ```
 
-`main.py` strips that line (it never reaches the customer), runs `simulate_booking()`, feeds the real outcome back as a system message, and lets the agent speak again. **The agent never announces a booking result it has not been told.** That single design choice is what makes the failure path honest rather than hopeful.
+The chat service strips that line (it never reaches the customer), runs `simulate_booking()`, feeds the real outcome back as a system message, and lets the agent speak again. **The agent never announces a booking result it has not been told.** That single design choice is what makes the failure path honest rather than hopeful.
 
 Failure is deterministic and triggers on: the per-session demo switch (the UI checkbox or `BOOKING_FORCE_FAILURE=1`), missing details, a same-day slot the site team can't confirm, or a slot already taken in this process. On failure the agent apologises once, offers an alternative slot or a human callback, and `site_visit_status` becomes `booking_failed`.
 
@@ -244,23 +267,25 @@ Enums keep it CRM-ready; every field degrades to `null`/`false` when unknown, be
 ### 3.9 Architecture
 
 ```
-Browser (index.html, inline CSS+JS)
+Browser (frontend/)
    │  POST /chat {session_id, message}
    ▼
-FastAPI (main.py)
-   ├─ SessionStore      in-memory history + profile
-   ├─ handle_turn()     assembles system prompt + context + history, calls the LLM
-   ├─ llm_chat()        Groq via the OpenAI SDK, or the deterministic mock
-   ├─ simulate_booking() success / failure
-   └─ analyse()         separate extraction call → strict JSON
+main.py ─── llm_chat()  Groq via the OpenAI SDK, or the deterministic mock
+   │            │
+   │            └── injected into ↓
+   ├─ chat_service.handle_turn(session, message, llm)
+   │        ├─ builds system prompt + session context + history
+   │        └─ booking_service.simulate_booking()  on the [[BOOK]] control line
+   ├─ analytics_service.analyse(session, llm)      separate call → strict JSON
+   └─ conversation_store                            memory + data/conversations.json
 ```
 
 **Why these choices**
 
 - **FastAPI** — required by the brief, and the cleanest small typed Python API.
 - **Groq via the OpenAI-compatible endpoint** — fast (which matters for the voice story) and free-tier friendly; keeping the OpenAI interface means changing provider is a `GROQ_BASE_URL` edit, not a rewrite.
-- **One file** — the whole app is ~1,300 lines including comments; for a project this size, one readable file beats seven modules and an import graph. The prompt stays in its own file because it is the deliverable.
-- **In-memory sessions** — simplest thing that demonstrates the requirement.
+- **Modules by responsibility** — chat, booking and analytics are separate services behind an injected LLM function, so each can be read, tested and replaced on its own; `main.py` is the only place that knows which model is in use.
+- **In-memory sessions with a JSON mirror** — a dict is the clearest way to show memory working, and whole-file JSON writes make a restart non-destructive without adding a database.
 - **Two-prompt design** — conversation and analytics have different output contracts, so JSON never leaks into speech.
 - **Mock LLM mode** — the app, the demo and the full test suite work with zero API key, which de-risks a reviewer's first run and keeps CI free.
 
@@ -304,7 +329,7 @@ Tests assert on **behavioural properties**, not exact strings, so they survive r
 
 The run writes `scenario_report.md` with the input, the expected behaviour and the actual output for every scenario.
 
-**About mock mode:** the mock is a small rule-based stand-in that reproduces the behaviour `system_prompt.md` specifies. Offline, the suite proves the *system* (orchestration, booking, honesty on failure, analytics contract, API) is correct; run it with `LIVE_TESTS=1` to prove the *prompt* satisfies the same assertions on a real model.
+**About mock mode:** the mock is a small rule-based stand-in that reproduces the behaviour the system prompt specifies. Offline, the suite proves the *system* (orchestration, booking, honesty on failure, analytics contract, API) is correct; run it with `LIVE_TESTS=1` to prove the *prompt* satisfies the same assertions on a real model.
 
 ---
 
@@ -329,7 +354,7 @@ The run writes `scenario_report.md` with the input, the expected behaviour and t
 
 ## 7. Known limitations
 
-- **Sessions are in memory** — they reset when the server restarts, and they do not scale across processes.
+- **Sessions are in memory, mirrored to one JSON file.** They survive a restart, but whole-file writes do not scale across processes or past a few thousand conversations. `CONVERSATIONS_PATH` moves the file; Redis or Postgres would replace `conversation_store.py` alone.
 - **Analytics quality depends on the model.** Coercion and ground-truth overrides bound the damage, but a weak model can still produce a mediocre `lead_summary`.
 - **Language mirroring is instruction-based**, not classifier-based. That is the right call for Hinglish, but edge cases exist. The heuristic in `detect_language()` only labels the profile and drives the mock; it never changes what a live agent says.
 - **No verified local-area data ships with this repo.** The agent can describe Sector 79 categorically but cannot name a single mall, school or hospital until the sales team fills in `VERIFIED LANDMARKS`. That is a deliberate trade: a categorical answer that is always true beats a specific one that might not be.
@@ -340,5 +365,5 @@ The run writes `scenario_report.md` with the input, the expected behaviour and t
 ## 8. AI tools used
 
 - **Groq** (OpenAI-compatible API) for inference — `llama-3.3-70b-versatile` as the documented default, `openai/gpt-oss-120b` in the verified live run.
-- **Claude (Anthropic), via Claude Code** — used as a pair programmer to draft and iterate on `system_prompt.md`, the FastAPI application, the deterministic mock and the test suite; every behaviour was then verified by running the suite and by live conversations against Groq.
+- **Claude (Anthropic), via Claude Code** — used as a pair programmer to draft and iterate on the system prompt, the FastAPI application, the deterministic mock and the test suite; every behaviour was then verified by running the suite and by live conversations against Groq.
 - No other AI services, and no third-party data sources: all product facts come from the brief.
