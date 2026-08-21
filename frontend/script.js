@@ -12,11 +12,48 @@
   const analyticsBox = document.getElementById("analytics");
   const analyticsJson = document.getElementById("analyticsJson");
   const backendPill = document.getElementById("backend");
+  const fab = document.getElementById("fab");
+  const panel = document.getElementById("panel");
+  const nudge = document.getElementById("nudge");
 
   const OPENING_LINE =
     "Hi, this is Ava from Northstar Homes, about Northstar One in Sector 79, Gurugram. Are you looking at a two BHK or a three BHK?";
 
   let sessionId = null;
+
+  /* ------------------------------------------------------------------ */
+  /* Launcher                                                            */
+  /* ------------------------------------------------------------------ */
+
+  function openPanel() {
+    panel.classList.add("open");
+    panel.setAttribute("aria-hidden", "false");
+    fab.classList.add("open", "seen");
+    fab.setAttribute("aria-expanded", "true");
+    nudge.classList.add("hidden");
+    input.focus();
+  }
+
+  function closePanel() {
+    panel.classList.remove("open");
+    panel.setAttribute("aria-hidden", "true");
+    fab.classList.remove("open");
+    fab.setAttribute("aria-expanded", "false");
+    fab.focus();
+  }
+
+  fab.addEventListener("click", () => {
+    if (panel.classList.contains("open")) closePanel();
+    else openPanel();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && panel.classList.contains("open")) closePanel();
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* Chat                                                                */
+  /* ------------------------------------------------------------------ */
 
   function bubble(text, who, extraClass) {
     const wrap = document.createElement("div");
@@ -101,7 +138,7 @@
       const data = await postJson("/end", { session_id: sessionId });
       analyticsJson.textContent = JSON.stringify(data.analytics, null, 2);
       analyticsBox.classList.remove("hidden");
-      analyticsBox.scrollIntoView({ behavior: "smooth", block: "end" });
+      analyticsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) {
       showBanner(`Could not load analytics (${err.message}).`, "bad");
     } finally {
@@ -135,6 +172,4 @@
     .catch(() => {
       backendPill.textContent = "server unreachable";
     });
-
-  input.focus();
 })();

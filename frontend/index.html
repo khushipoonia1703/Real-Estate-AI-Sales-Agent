@@ -7,37 +7,71 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <main class="app">
-    <header class="header">
-      <div class="brand">
-        <span class="star">✦</span>
+  <!-- Landing screen -->
+  <main class="stage">
+    <span class="star">&#10022;</span>
+    <h1 class="hero">Real Estate AI Sales Agent</h1>
+    <p class="hero-name">&mdash; AVA</p>
+    <p class="hero-sub">Northstar Homes &middot; Northstar One &middot; Sector 79, Gurugram</p>
+    <p class="hero-hint">Speaks English, Hindi and Hinglish</p>
+  </main>
+
+  <!-- Nudge: an arrow pointing at the chat button -->
+  <div class="nudge" id="nudge">
+    <span class="nudge-text">Chat with AVA</span>
+    <svg class="nudge-arrow" viewBox="0 0 80 70" aria-hidden="true">
+      <path d="M4 12 C 40 6, 68 26, 73 54" />
+      <polygon points="75,63 76.7,47.4 63.5,52.3" />
+    </svg>
+  </div>
+
+  <!-- Chat launcher -->
+  <button id="fab" class="fab" type="button" aria-label="Chat with Ava" aria-expanded="false">
+    <svg class="fab-icon fab-icon-chat" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3v4l5-4h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+    </svg>
+    <svg class="fab-icon fab-icon-close" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  </button>
+
+  <!-- Chat panel -->
+  <section id="panel" class="panel" role="dialog" aria-label="Chat with Ava" aria-hidden="true">
+    <header class="panel-head">
+      <div class="who">
+        <span class="avatar">A</span>
         <div>
-          <h1>Northstar Homes</h1>
-          <p class="sub">Northstar One · Sector 79, Gurugram</p>
+          <h2>Ava</h2>
+          <p class="sub">Northstar Homes</p>
         </div>
       </div>
-      <div class="status">
-        <span id="backend" class="pill">connecting…</span>
-      </div>
+      <span id="backend" class="pill">connecting&hellip;</span>
     </header>
 
-    <section id="chat" class="chat" aria-live="polite">
+    <div id="chat" class="chat" aria-live="polite">
       <div class="msg agent">
         <p>Hi, this is Ava from Northstar Homes, about Northstar One in Sector 79, Gurugram. Are you looking at a two BHK or a three BHK?</p>
       </div>
-    </section>
+    </div>
 
     <div id="banner" class="banner hidden"></div>
+
+    <section id="analytics" class="analytics hidden">
+      <h3>Post-conversation analytics</h3>
+      <pre id="analyticsJson"></pre>
+    </section>
 
     <form id="composer" class="composer" autocomplete="off">
       <input
         id="input"
         type="text"
-        placeholder="Type in English, Hindi or Hinglish…"
+        placeholder="Type in English, Hindi or Hinglish&hellip;"
         aria-label="Your message"
         maxlength="2000"
       />
-      <button id="send" type="submit">Send</button>
+      <button id="send" type="submit" aria-label="Send">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z" /></svg>
+      </button>
     </form>
 
     <div class="toolbar">
@@ -47,15 +81,10 @@
       </label>
       <div class="actions">
         <button id="resetBtn" type="button" class="ghost">New chat</button>
-        <button id="endBtn" type="button">End chat &amp; see analytics</button>
+        <button id="endBtn" type="button" class="ghost">End &amp; analytics</button>
       </div>
     </div>
-
-    <section id="analytics" class="analytics hidden">
-      <h2>Post-conversation analytics</h2>
-      <pre id="analyticsJson"></pre>
-    </section>
-  </main>
+  </section>
 
   <script src="/static/script.js"></script>
 </body>
