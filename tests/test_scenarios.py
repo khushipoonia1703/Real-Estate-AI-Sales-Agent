@@ -210,7 +210,7 @@ def test_language_switch_mid_conversation():
         "Hinglish without commenting on the switch.",
     )
     assert not DEVANAGARI_RE.search(replies[0])
-    assert "one point three five crore" in replies[0].lower()
+    assert "₹1.35 Cr" in replies[0]
     assert looks_hinglish_or_hindi(replies[1]), f"did not switch: {replies[1]!r}"
 
 
@@ -219,20 +219,44 @@ def test_language_switch_mid_conversation():
 # --------------------------------------------------------------------------- #
 
 
-def test_price_uses_only_fact_sheet_and_speakable_numbers():
-    """Input: price question. Expected: the two fact-sheet prices, spoken form."""
+def test_price_uses_only_fact_sheet_and_chat_number_format():
+    """Input: price question in chat. Expected: the fact-sheet price, compact form."""
     _, replies = run_scenario(
         "price_question",
         ["What's the price of a 3 BHK?"],
-        "States one point seven five crore for the 3 BHK, no other numbers, "
-        "no currency symbols or digit-grouped prices.",
+        "States ₹1.75 Cr for the 3 BHK on the chat channel, no other numbers, "
+        "and never a digit-grouped price like 1,75,00,000.",
     )
     reply = replies[0].lower()
     assert_voice_safe(replies[0])
     assert_no_fabrication(replies[0])
-    assert "one point seven five crore" in reply
-    assert "₹" not in replies[0], "prices must be speakable, not symbols"
+    assert "₹1.75 cr" in reply, "chat prices must use the compact form"
+    assert "one point seven five crore" not in reply, "that is the voice form"
     assert "1,75" not in replies[0] and "17500000" not in replies[0]
+
+
+def test_voice_channel_keeps_prices_speakable():
+    """Same question on the voice channel. Expected: words, no currency symbol."""
+    session = store.get_or_create("voice_price")
+    reply = chat_service.handle_turn(
+        session, "What's the price of a 3 BHK?", main.llm_chat, "voice"
+    ).reply
+    RESULTS.append(
+        {
+            "id": "voice_price",
+            "inputs": ["What's the price of a 3 BHK? (Channel: voice)"],
+            "expected": "On a call the price is spoken as words, with no rupee "
+            "symbol and no digits to read out.",
+            "actual": [reply],
+            "extra": "the same prompt, the other channel",
+        }
+    )
+    ALL_REPLIES.append(reply)
+    assert_voice_safe(reply)
+    assert_no_fabrication(reply)
+    assert "one point seven five crore" in reply.lower()
+    assert "₹" not in reply, "a currency symbol cannot be spoken"
+    assert "1.75" not in reply, "digits do not belong in a spoken price"
 
 
 def test_unknown_question_is_not_guessed():
@@ -527,8 +551,8 @@ def test_memory_persists_within_the_session():
         assert_no_fabrication(reply)
     assert session.profile.name == "Priya Sharma"
     assert session.profile.configuration_interest == "3BHK"
-    assert "one point seven five crore" in replies[-1].lower()
-    assert "one point three five crore" not in replies[-1].lower(), (
+    assert "₹1.75 Cr" in replies[-1]
+    assert "₹1.35 Cr" not in replies[-1], (
         "quoted the 2 BHK price to a 3 BHK customer"
     )
 
@@ -692,7 +716,7 @@ def test_api_chat_end_and_analytics_endpoints():
     second = client.post(
         "/chat", json={"message": "What's the price?", "session_id": session_id}
     ).json()
-    assert "one point three five crore" in second["reply"].lower()
+    assert "₹1.35 Cr" in second["reply"]
 
     ended = client.post("/end", json={"session_id": session_id}).json()
     assert set(ended["analytics"]) == set(schemas.SCHEMA_KEYS)

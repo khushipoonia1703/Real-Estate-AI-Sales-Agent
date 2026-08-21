@@ -56,9 +56,21 @@
 
     <div id="banner" class="banner hidden"></div>
 
-    <section id="analytics" class="analytics hidden">
-      <h3>Post-conversation analytics</h3>
-      <pre id="analyticsJson"></pre>
+    <section id="analytics" class="analytics hidden" aria-label="Post-conversation analytics">
+      <h3>Lead summary</h3>
+      <p id="leadSummary" class="lead-summary"></p>
+
+      <dl id="analyticsGrid" class="facts"></dl>
+
+      <div class="next-action">
+        <span class="next-action-label">Recommended next action</span>
+        <p id="nextAction"></p>
+      </div>
+
+      <button id="rawToggle" class="raw-toggle" type="button" aria-expanded="false">
+        Show raw JSON
+      </button>
+      <pre id="analyticsJson" class="hidden"></pre>
     </section>
 
     <form id="composer" class="composer" autocomplete="off">

@@ -201,6 +201,48 @@ def _pick(variants: Dict[str, str], lang: str) -> str:
     return variants.get(lang) or variants["english"]
 
 
+# Prices follow the channel, exactly as section 4 rule 4 of the prompt requires:
+# compact and readable in chat, speakable words on a call.
+_PRICES = {
+    "2BHK": {
+        "chat": "₹1.35 Cr",
+        "voice": "one point three five crore",
+        "voice_hindi": "एक पॉइंट तीन पाँच करोड़",
+    },
+    "3BHK": {
+        "chat": "₹1.75 Cr",
+        "voice": "one point seven five crore",
+        "voice_hindi": "एक पॉइंट सात पाँच करोड़",
+    },
+}
+
+
+_CHANNEL_LINE_RE = re.compile(r"^Channel:[ \t]*(chat|voice)[ \t]*$", re.MULTILINE)
+
+
+def _channel_of(messages: List[Dict[str, str]]) -> str:
+    """Read the channel out of the SESSION CONTEXT block in the system prompt.
+
+    Matches only a whole line, because the prompt body itself discusses both
+    `Channel: chat` and `Channel: voice` when it explains the price rule. The
+    last match wins: the session context is appended after the prompt.
+    """
+    for msg in messages:
+        if msg["role"] != "system":
+            continue
+        found = _CHANNEL_LINE_RE.findall(msg["content"])
+        if found:
+            return found[-1]
+    return "chat"
+
+
+def _price(config: str, channel: str, lang: str) -> str:
+    entry = _PRICES[config]
+    if channel == "voice":
+        return entry["voice_hindi"] if lang == "hindi" else entry["voice"]
+    return entry["chat"]
+
+
 def _next_question(messages: List[Dict[str, str]], lang: str) -> str:
     """The one question this turn should end on: the first gap in the profile."""
     known = qualification(messages)
@@ -227,6 +269,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
     user_text = last_user(messages)
     text = user_text.lower().strip()
     lang = lang_of(user_text)
+    channel = _channel_of(messages)
     said_before = assistant_text(messages)
 
     # 1. Opt-out beats every other goal.
@@ -386,23 +429,25 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
     # 8. Price: the one thing we can always answer.
     if has_phrase(text, PRICE_PHRASES) or re.search(r"\b[23]\s*bhk|two bhk|three bhk", text):
         config = qualification(messages)["config"]
+        two = _price("2BHK", channel, lang)
+        three = _price("3BHK", channel, lang)
         if config == "3BHK":
             fact = {
-                "english": "Three BHKs at Northstar One start at one point seven five crore.",
-                "hinglish": "Northstar One mein 3 BHK one point seven five crore se shuru hote hain.",
-                "hindi": "नॉर्थस्टार वन में 3 BHK एक पॉइंट सात पाँच करोड़ से शुरू होते हैं।",
+                "english": f"Three BHKs at Northstar One start at {three}.",
+                "hinglish": f"Northstar One mein 3 BHK {three} se shuru hote hain.",
+                "hindi": f"नॉर्थस्टार वन में 3 BHK {three} से शुरू होते हैं।",
             }
         elif config == "2BHK":
             fact = {
-                "english": "Two BHKs start at one point three five crore.",
-                "hinglish": "2 BHK one point three five crore se shuru hote hain.",
-                "hindi": "2 BHK एक पॉइंट तीन पाँच करोड़ से शुरू होते हैं।",
+                "english": f"Two BHKs start at {two}.",
+                "hinglish": f"2 BHK {two} se shuru hote hain.",
+                "hindi": f"2 BHK {two} से शुरू होते हैं।",
             }
         else:
             fact = {
-                "english": "Two BHKs start at one point three five crore, and three BHKs at one point seven five crore.",
-                "hinglish": "2 BHK one point three five crore se aur 3 BHK one point seven five crore se shuru hote hain.",
-                "hindi": "2 BHK एक पॉइंट तीन पाँच करोड़ से और 3 BHK एक पॉइंट सात पाँच करोड़ से शुरू होते हैं।",
+                "english": f"Two BHKs start at {two}, and three BHKs at {three}.",
+                "hinglish": f"2 BHK {two} se aur 3 BHK {three} se shuru hote hain.",
+                "hindi": f"2 BHK {two} से और 3 BHK {three} से शुरू होते हैं।",
             }
         return f"{_pick(fact, lang)} {_next_question(messages, lang)}"
 

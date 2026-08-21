@@ -11,6 +11,10 @@
   const banner = document.getElementById("banner");
   const analyticsBox = document.getElementById("analytics");
   const analyticsJson = document.getElementById("analyticsJson");
+  const analyticsGrid = document.getElementById("analyticsGrid");
+  const leadSummary = document.getElementById("leadSummary");
+  const nextAction = document.getElementById("nextAction");
+  const rawToggle = document.getElementById("rawToggle");
   const backendPill = document.getElementById("backend");
   const fab = document.getElementById("fab");
   const panel = document.getElementById("panel");
@@ -76,6 +80,111 @@
     banner.textContent = "";
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Analytics card                                                      */
+  /* ------------------------------------------------------------------ */
+
+  const EMPTY = "—"; // em dash
+
+  // enum -> readable: "opted_out" -> "Opted out", "2BHK" stays "2BHK"
+  function humanize(value) {
+    if (value === null || value === undefined || value === "") return null;
+    const text = String(value).replace(/_/g, " ").trim();
+    if (!text) return null;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  // Which colour a status value gets. Anything unlisted stays neutral.
+  const BADGE_TONE = {
+    high: "good", qualified: "good", booked: "good",
+    medium: "warn", partially_qualified: "warn", proposed: "warn",
+    booking_failed: "bad", opted_out: "bad",
+    low: "flat", unqualified: "flat", declined: "flat", none: "flat",
+  };
+
+  function badge(value) {
+    const el = document.createElement("span");
+    el.className = `badge badge-${BADGE_TONE[value] || "flat"}`;
+    el.textContent = humanize(value) || EMPTY;
+    return el;
+  }
+
+  // Booleans read as Yes/No, coloured by whether "yes" is something to act on.
+  function chip(value, yesTone) {
+    const el = document.createElement("span");
+    el.className = `badge badge-${value ? yesTone : "flat"}`;
+    el.textContent = value ? "Yes" : "No";
+    return el;
+  }
+
+  function tags(list) {
+    if (!Array.isArray(list) || list.length === 0) return text("None", true);
+    const wrap = document.createElement("div");
+    wrap.className = "tags";
+    list.forEach((item) => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = humanize(item) || item;
+      wrap.appendChild(tag);
+    });
+    return wrap;
+  }
+
+  function text(value, muted) {
+    const el = document.createElement("span");
+    const readable = muted ? value : humanize(value);
+    el.textContent = readable === null ? EMPTY : readable;
+    if (readable === null) el.dataset.empty = "true";
+    return el;
+  }
+
+  function row(label, node) {
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    if (node.dataset && node.dataset.empty === "true") dd.className = "empty";
+    dd.appendChild(node);
+    analyticsGrid.appendChild(dt);
+    analyticsGrid.appendChild(dd);
+  }
+
+  function renderAnalytics(data) {
+    leadSummary.textContent = data.lead_summary || EMPTY;
+    analyticsGrid.innerHTML = "";
+
+    row("Interest level", badge(data.interest_level));
+    row("Qualification", badge(data.qualification_status));
+    row("Configuration", text(data.configuration_interest));
+    row("Budget", text(data.budget));
+    row("Purpose", text(data.purpose));
+    row("Language", text(data.language));
+    row("Objections", tags(data.objections_raised));
+    row("Site visit", badge(data.site_visit_status));
+    row("Site visit time", text(data.site_visit_datetime));
+    row("Follow-up required", chip(data.follow_up_required, "warn"));
+    row("Follow-up notes", text(data.follow_up_notes));
+    row("Do not contact", chip(data.do_not_contact, "bad"));
+    row("Escalated to human", chip(data.escalated_to_human, "warn"));
+    row("Contact name", text((data.contact || {}).name));
+    row("Contact phone", text((data.contact || {}).phone));
+
+    nextAction.textContent = data.next_action || EMPTY;
+
+    analyticsJson.textContent = JSON.stringify(data, null, 2);
+    analyticsJson.classList.add("hidden");
+    rawToggle.textContent = "Show raw JSON";
+    rawToggle.setAttribute("aria-expanded", "false");
+
+    analyticsBox.classList.remove("hidden");
+    analyticsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  rawToggle.addEventListener("click", () => {
+    const hidden = analyticsJson.classList.toggle("hidden");
+    rawToggle.textContent = hidden ? "Show raw JSON" : "Hide raw JSON";
+    rawToggle.setAttribute("aria-expanded", hidden ? "false" : "true");
+  });
+
   async function postJson(url, body) {
     const res = await fetch(url, {
       method: "POST",
@@ -136,9 +245,7 @@
     endBtn.disabled = true;
     try {
       const data = await postJson("/end", { session_id: sessionId });
-      analyticsJson.textContent = JSON.stringify(data.analytics, null, 2);
-      analyticsBox.classList.remove("hidden");
-      analyticsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      renderAnalytics(data.analytics);
     } catch (err) {
       showBanner(`Could not load analytics (${err.message}).`, "bad");
     } finally {
@@ -159,6 +266,12 @@
     bubble(OPENING_LINE, "agent");
     analyticsBox.classList.add("hidden");
     analyticsJson.textContent = "";
+    analyticsJson.classList.add("hidden");
+    analyticsGrid.innerHTML = "";
+    leadSummary.textContent = "";
+    nextAction.textContent = "";
+    rawToggle.textContent = "Show raw JSON";
+    rawToggle.setAttribute("aria-expanded", "false");
     clearBanner();
     input.focus();
   });
