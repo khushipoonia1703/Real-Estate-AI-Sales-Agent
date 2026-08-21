@@ -89,6 +89,18 @@ Running the tests also writes `scenario_report.md` — a readable input / expect
 
 Everything else — carpet area, floor plans, possession date, amenities, payment plans, discounts, EMI, RERA, availability — is **unknown** and must be deferred to a human. This is the single most important rule in the project, and it is enforced in the prompt, in the analytics contract, and in the tests.
 
+### The neighbourhood (prompt §1.1)
+
+We know the project is in Sector 79, so the agent is allowed to talk about the area — but only in the terms that are actually true without research:
+
+**She may say:** it is in Sector 79, Gurugram; it is one of Gurugram's newer planned residential sectors; there are schools, hospitals, markets, malls and offices in the sector and the ones around it; it is connected by road to the rest of Gurugram and towards Delhi; the area is still developing.
+
+**She may never say:** the *name* of any specific mall, school, hospital, road, highway or metro station; any *distance* ("two km from", "walking distance"); any *travel time* ("fifteen minutes to Cyber City"); anything about metro lines or stations; anything about future infrastructure or appreciation.
+
+Distance and connectivity claims are the most over-claimed thing in Indian real estate and a wrong one is a misleading advertisement, so a specific question ("how far is the metro?") is handled exactly like any other unknown: no number, offer to have the team confirm, and offer the site visit — where the customer judges the drive themselves.
+
+To let the agent name real places, add them to the **VERIFIED LANDMARKS** list in `system_prompt.md` §1.1. It ships empty, and anything not on it stays unknown. Add names only, no distances — traffic makes those wrong.
+
 ### Non-negotiable guardrails
 
 1. **No fabrication.** Never invent prices, discounts, availability, sizes, dates or specs — not in the prompt, the code, the tests or the demo data.
@@ -164,6 +176,7 @@ Deliberately not a database: the brief values simplicity, and a dict shows the r
 | 5 | Busy / uninterested | Respected immediately. One short value hook at most, then ask for a better time or let go. |
 | 6 | Contact later | Confirm and capture preferred time and channel; `follow_up_required=true`; end warmly. |
 | 7 | Stop contacting me | Acknowledge once, confirm suppression, stop selling entirely. `do_not_contact=true`. No guilt-tripping. |
+| 7b | Neighbourhood questions | May describe Sector 79 as a newer planned sector with schools, hospitals, markets and malls around it. Never a landmark name, a distance or a travel time unless it is on the verified list. |
 | 8 | Unknown questions | Never guess. "I don't want to give you the wrong figure — let me get that confirmed." Offer follow-up or escalation, and hold the line if pushed. |
 | 9 | Site-visit booking | Collect name, slot, phone — one at a time — read back, confirm, then book. |
 | 10 | Booking failure | Detect it, apologise once, **never** claim success, offer an alternative slot or a human callback. |
@@ -268,6 +281,7 @@ Tests assert on **behavioural properties**, not exact strings, so they survive r
 | Hindi in Devanagari | reply is in Devanagari |
 | Language switch | English → Hinglish mid-conversation |
 | Price question | fact-sheet price, spoken form, no `₹`, no digit grouping |
+| Neighbourhood question | describes Sector 79 generally; no landmark name, no km, no travel time |
 | Unknown (possession date) | no date invented, defers to the team |
 | Pushed for a guess | still no number |
 | Discount request | no invented offer or percentage |
@@ -304,7 +318,8 @@ The run writes `scenario_report.md` with the input, the expected behaviour and t
 
 ## 6. Assumptions
 
-- The six values in the fact sheet are **all** the product facts that exist. Anything else is out of scope and deferred to a human — including things a real agent might know (amenities, possession, RERA).
+- The values in the fact sheet are **all** the product facts that exist. Anything else is out of scope and deferred to a human — including things a real agent might know (amenities, possession, RERA).
+- **The neighbourhood is the one deliberate widening of that rule.** Because the sector is known, the agent may describe Sector 79's surroundings in general terms — schools, hospitals, markets, malls, offices, road connectivity. No specific landmark, distance or travel time has been verified for this project, so `VERIFIED LANDMARKS` ships empty and the agent names nothing; fill that list in and naming turns on immediately. The assumption behind the general statement is simply that a planned Gurugram residential sector has ordinary social infrastructure around it, which is true of the sector belt as a class rather than a researched claim about any one address.
 - **Voice is addressed at the prompt level.** The style contract makes every reply speakable; no telephony or TTS is wired up in this take-home.
 - **Booking is simulated.** No calendar or CRM integration; the failure path is deterministic so it can be demonstrated.
 - The agent is female-presenting ("Ava") and introduces herself as Northstar Homes' assistant; if asked directly whether she is a bot, she says so honestly and offers a human.
@@ -317,6 +332,7 @@ The run writes `scenario_report.md` with the input, the expected behaviour and t
 - **Sessions are in memory** — they reset when the server restarts, and they do not scale across processes.
 - **Analytics quality depends on the model.** Coercion and ground-truth overrides bound the damage, but a weak model can still produce a mediocre `lead_summary`.
 - **Language mirroring is instruction-based**, not classifier-based. That is the right call for Hinglish, but edge cases exist. The heuristic in `detect_language()` only labels the profile and drives the mock; it never changes what a live agent says.
+- **No verified local-area data ships with this repo.** The agent can describe Sector 79 categorically but cannot name a single mall, school or hospital until the sales team fills in `VERIFIED LANDMARKS`. That is a deliberate trade: a categorical answer that is always true beats a specific one that might not be.
 - **No auth, no rate limiting, no persistence, no telephony.** Out of scope for a demo.
 - **The mock is not the model.** Offline test passes prove the plumbing and contracts, not the prompt's fluency; that is what `LIVE_TESTS=1` is for.
 - **Booking slots are free text** ("Saturday 5 pm"), not parsed dates, so there is no timezone or calendar validation.

@@ -629,10 +629,26 @@ UNKNOWN_PHRASES = (
     "possession", "handover", "carpet", "built up", "built-up", "square feet",
     "sq ft", "sqft", "floor plan", "layout", "amenit", "clubhouse", "swimming",
     "pool", "gym", "parking", "rera", "approval", "emi", "loan", "bank",
-    "payment plan", "maintenance", "booking amount", "metro", "how far",
-    "school", "hospital", "mall", "availability", "units left", "inventory",
+    "payment plan", "maintenance", "booking amount", "availability",
+    "units left", "inventory",
     "brochure", "area of", "size of", "how big", "kitna bada", "kab milega",
     "kab tak", "possession kab", "kitna area", "area kitna", "कब मिलेगा", "क्षेत्रफल",
+)
+# Anything that asks the neighbourhood to be quantified. Section 1.1 of the
+# prompt lets Ava describe Sector 79, but never with a number or a place name.
+DISTANCE_PHRASES = (
+    "how far", "distance", "how long does it take", "how much time",
+    "minutes from", "km from", "metro", "highway", "expressway", "airport",
+    "cyber city", "commute time", "kitni door", "kitna door", "kitne door",
+    "कितनी दूर", "मेट्रो",
+)
+# Open questions about the area, which Ava may answer in general terms.
+LOCATION_PHRASES = (
+    "what's around", "whats around", "what is around", "nearby", "near by",
+    "around there", "around it", "neighbourhood", "neighborhood", "locality",
+    "location", "school", "hospital", "clinic", "mall", "market", "office",
+    "connectivity", "aas paas", "aaspaas", "paas mein", "nazdeek",
+    "आसपास", "पास में", "स्कूल", "अस्पताल",
 )
 OBJECTION_PRICE_PHRASES = (
     "too expensive", "expensive", "costly", "too much", "over budget",
@@ -885,7 +901,29 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
             lang,
         )
 
-    # 3. Unknown questions, and pushing for a guess about one.
+    # 3. The neighbourhood. Describable in general terms, never quantified.
+    if has_phrase(text, DISTANCE_PHRASES):
+        return _pick(
+            {
+                "english": "I do not want to give you a wrong distance on that, and traffic changes it anyway. Our team can give you the exact answer. Would a site visit work, so you can judge the drive yourself?",
+                "hinglish": "Us par main aapko galat distance nahi batana chahti, aur traffic se waise bhi badal jata hai. Team aapko exact bata degi. Aap site visit pe aa jaiye, khud andaza ho jayega, theek hai?",
+                "hindi": "उस पर मैं आपको गलत दूरी नहीं बताना चाहती, और ट्रैफ़िक से वैसे भी बदल जाती है। टीम आपको सही जानकारी दे देगी। आप साइट विज़िट पर आ जाइए, खुद अंदाज़ा हो जाएगा, ठीक है?",
+            },
+            lang,
+        )
+    if has_phrase(text, LOCATION_PHRASES) and not has_phrase(
+        text, OBJECTION_LOCATION_PHRASES
+    ):
+        return _pick(
+            {
+                "english": "Sector 79 is one of Gurugram's newer residential sectors, so there are schools, hospitals, markets and malls around it. I would rather not name one and get it wrong, so shall I have the team send you the exact list?",
+                "hinglish": "Sector 79 Gurugram ke naye residential sectors mein se hai, to aas paas schools, hospitals, markets aur malls sab hain. Main kisi ka naam galat nahi batana chahti, to team se exact list bhijwa dun?",
+                "hindi": "सेक्टर 79 गुड़गांव के नए रिहायशी सेक्टरों में से है, तो आसपास स्कूल, अस्पताल, मार्केट और मॉल सब हैं। मैं किसी का नाम गलत नहीं बताना चाहती, तो टीम से सही सूची भिजवा दूँ?",
+            },
+            lang,
+        )
+
+    # 4. Unknown questions, and pushing for a guess about one.
     asked_unknown_before = (
         "wrong figure" in assistant_text or "galat number" in assistant_text
     )
@@ -908,7 +946,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
             lang,
         )
 
-    # 4. Objections.
+    # 5. Objections.
     if has_phrase(text, OBJECTION_PRICE_PHRASES):
         return _pick(
             {
@@ -946,7 +984,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
             lang,
         )
 
-    # 5. Not interested, busy, later.
+    # 6. Not interested, busy, later.
     if has_phrase(text, NOT_INTERESTED_PHRASES):
         return _pick(
             {
@@ -975,7 +1013,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
             lang,
         )
 
-    # 6. Booking flow: active once a visit is on the table, and it stays active
+    # 7. Booking flow: active once a visit is on the table, and it stays active
     #    while the details are being collected.
     booking_started = any(
         has_phrase(m.lower(), VISIT_PHRASES) for m in _user_messages(messages)
@@ -988,7 +1026,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
     if booking_started and not already_booked:
         return _booking_turn(messages, lang, assistant_text)
 
-    # 7. Price: the one thing we can always answer.
+    # 8. Price: the one thing we can always answer.
     if has_phrase(text, PRICE_PHRASES) or re.search(r"\b[23]\s*bhk|two bhk|three bhk", text):
         config = _qualification(messages)["config"]
         if config == "3BHK":
@@ -1011,7 +1049,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
             }
         return f"{_pick(fact, lang)} {_next_question(messages, lang)}"
 
-    # 8. Greeting or first turn.
+    # 9. Greeting or first turn.
     if has_phrase(text, GREETING_PHRASES) or len(messages) <= 2:
         opener = {
             "english": "Hi, this is Ava from Northstar Homes, about Northstar One in Sector 79, Gurugram.",
@@ -1020,7 +1058,7 @@ def mock_reply(messages: List[Dict[str, str]], *, json_mode: bool = False) -> st
         }
         return f"{_pick(opener, lang)} {_next_question(messages, lang)}"
 
-    # 9. Otherwise: acknowledge, then keep qualifying.
+    # 10. Otherwise: acknowledge, then keep qualifying.
     ack = {
         "english": "Got it, thank you.",
         "hinglish": "Theek hai, shukriya.",

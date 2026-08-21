@@ -45,6 +45,13 @@ FORBIDDEN_PATTERNS = (
     r"\bRERA\s*(?:no|number|id)\b",
     r"\bEMI (?:of|is|will be|starts)\b",
     r"\b\d+\s?(?:bhk)?\s?(?:sq|sqft)\b",
+    # invented neighbourhood claims: distances, travel times, named landmarks
+    r"\b\d+(?:\.\d+)?\s?(?:km|kms|kilometre|kilometer|kilometres|kilometers)\b",
+    r"\b\d+\s?(?:min|mins|minute|minutes|hour|hours)\s?(?:from|away|to|drive|by road|by car)\b",
+    r"\bwalking distance\b",
+    r"\bjust \d+\s?(?:min|mins|minutes)\b",
+    r"\b(?:metro station|yellow line|rapid metro|dwarka expressway|golf course road)\b",
+    r"\bNH-?\s?\d+\b",
 )
 
 MARKDOWN_PATTERNS = (r"\*\*", r"^\s*[-*•]\s", r"^#{1,6}\s", r"```", r"\|\s*-{2,}")
@@ -296,6 +303,43 @@ def test_competitor_objection_does_not_disparage():
     assert_voice_safe(replies[0])
     assert not re.search(r"\b(?:worse|bad builder|cheap quality|avoid them)\b", reply)
     assert re.search(r"visit|see|compare|dekh|तुलना", reply)
+
+
+def test_neighbourhood_is_described_but_never_quantified_or_named():
+    """Input: what's nearby, then how far is the metro. Expected: general, not specific."""
+    _, replies = run_scenario(
+        "neighbourhood_question",
+        [
+            "What's around Sector 79? Any schools and hospitals nearby?",
+            "How far is the metro?",
+        ],
+        "Describes Sector 79 as one of Gurugram's newer sectors with schools, "
+        "hospitals, markets and malls around it, but names no specific landmark "
+        "and quotes no distance or travel time; offers to have the team confirm "
+        "the specifics.",
+        extra="no km, no travel time, no metro or highway name in either reply",
+    )
+    for reply in replies:
+        assert_voice_safe(reply)
+        assert_no_fabrication(reply)
+        assert not re.search(
+            r"\b\d+(?:\.\d+)?\s?(?:km|kilometre|kilometer|minutes?|mins?)\b",
+            reply,
+            re.IGNORECASE,
+        ), f"quantified the neighbourhood: {reply!r}"
+
+    described = replies[0].lower()
+    assert re.search(
+        r"sector 79|gurugram|गुड़गांव|सेक्टर 79", described
+    ), "did not place the project"
+    assert re.search(
+        r"school|hospital|market|mall|स्कूल|अस्पताल", described
+    ), "did not describe the neighbourhood at all"
+
+    distance = replies[1].lower()
+    assert re.search(
+        r"confirm|team|exact|wrong|galat|visit|टीम|सही", distance
+    ), f"did not defer the distance question: {replies[1]!r}"
 
 
 # --------------------------------------------------------------------------- #
