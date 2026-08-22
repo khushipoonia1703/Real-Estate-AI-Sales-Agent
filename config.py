@@ -73,7 +73,9 @@ def get_settings() -> Settings:
         groq_strict_model=_flag("GROQ_STRICT_MODEL"),
         llm_mock=_flag("LLM_MOCK"),
         temperature=_float("LLM_TEMPERATURE", 0.4),
-        max_tokens=_int("LLM_MAX_TOKENS", 400),
+        # 400 truncates these models mid-sentence: the cap covers their
+        # internal reasoning tokens, not just the visible reply.
+        max_tokens=_int("LLM_MAX_TOKENS", 900),
         booking_force_failure=_flag("BOOKING_FORCE_FAILURE"),
         conversations_path=Path(
             os.getenv("CONVERSATIONS_PATH", "").strip()

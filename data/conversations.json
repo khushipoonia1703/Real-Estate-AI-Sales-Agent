@@ -897,5 +897,128 @@
         "ts": "2026-08-21T16:00:29+00:00"
       }
     ]
+  },
+  "sess_fd3fd854e5b6": {
+    "session_id": "sess_fd3fd854e5b6",
+    "created_at": "2026-08-22T03:40:48+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "Correct",
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "3 BHK",
+        "ts": "2026-08-22T03:40:48+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr. Are you looking to live there or invest?",
+        "ts": "2026-08-22T03:40:49+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Live there",
+        "ts": "2026-08-22T03:41:05+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "What budget range are you comfortable with for a 3 BHK?",
+        "ts": "2026-08-22T03:41:35+00:00"
+      },
+      {
+        "role": "user",
+        "content": "40 Cr",
+        "ts": "2026-08-22T03:41:58+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Thanks for sharing your budget. May I know your name, please?",
+        "ts": "2026-08-22T03:41:59+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Khushi Poonia",
+        "ts": "2026-08-22T03:42:06+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "When would you like to visit the site?",
+        "ts": "2026-08-22T03:42:07+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Never",
+        "ts": "2026-08-22T03:42:20+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it. Would you like me to arrange a call with one of our sales managers to discuss it further?",
+        "ts": "2026-08-22T03:42:20+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Sure",
+        "ts": "2026-08-22T03:42:30+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure! May I have a phone number where I can reach you?",
+        "ts": "2026-08-22T03:42:31+00:00"
+      },
+      {
+        "role": "user",
+        "content": "+91 171717171",
+        "ts": "2026-08-22T03:42:41+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-22T03:42:43+00:00"
+      },
+      {
+        "role": "user",
+        "content": "okay",
+        "ts": "2026-08-22T03:42:55+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "What time would be convenient for a colleague to call you back?",
+        "ts": "2026-08-22T03:42:56+00:00"
+      },
+      {
+        "role": "user",
+        "content": "11 am",
+        "ts": "2026-08-22T03:43:01+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, I will arrange a call at 11 am. Is that correct?",
+        "ts": "2026-08-22T03:43:01+00:00"
+      },
+      {
+        "role": "user",
+        "content": "correct",
+        "ts": "2026-08-22T03:43:06+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, Khushi, I will arrange for a sales manager to call you at 11 am. You’ll receive a confirmation shortly. Thanks for your time.",
+        "ts": "2026-08-22T03:43:06+00:00"
+      }
+    ]
   }
 }

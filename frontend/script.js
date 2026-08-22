@@ -219,6 +219,7 @@
       sessionId = data.session_id;
       typing.remove();
       bubble(data.reply, "agent");
+      refreshBackendPill();
 
       if (data.booking) {
         if (data.booking.ok) {
@@ -287,13 +288,31 @@
     input.focus();
   });
 
-  fetch("/health")
-    .then((res) => res.json())
-    .then((data) => {
-      backendPill.textContent =
-        data.llm.mode === "mock" ? "offline mock mode" : `groq · ${data.llm.model}`;
-    })
-    .catch(() => {
-      backendPill.textContent = "server unreachable";
-    });
+  /* The badge must name the model that actually answered, not the one we asked
+     for: a fallback is a different model on a different bill, and hiding that
+     is exactly what the logging is designed to prevent. */
+  function refreshBackendPill() {
+    return fetch("/health")
+      .then((res) => res.json())
+      .then((data) => {
+        const llm = data.llm;
+        if (llm.mode === "mock") {
+          backendPill.textContent = "offline mock mode";
+          backendPill.title = "Deterministic offline mock - no API calls.";
+          return;
+        }
+        const answered = llm.last_model || llm.model;
+        backendPill.textContent = llm.on_fallback
+          ? `groq · ${answered} (fallback)`
+          : `groq · ${answered}`;
+        backendPill.title = llm.on_fallback
+          ? `Configured: ${llm.model}. Answering: ${answered}.`
+          : `Configured and answering: ${llm.model}.`;
+      })
+      .catch(() => {
+        backendPill.textContent = "server unreachable";
+      });
+  }
+
+  refreshBackendPill();
 })();

@@ -42,7 +42,7 @@ uvicorn main:app --reload --port 8010
 
 and open the matching URL (http://localhost:8010).
 
-**Check the backend:** open `http://localhost:8000/health` — it shows whether you're on live Groq (`"mode": "groq"`) or the offline mock, the configured model, the model that actually answered last (`last_model`), whether a fallback is currently in use (`on_fallback`), and any models cooling down after a rate limit.
+**Check the backend:** open `http://localhost:8000/health` — it shows whether you're on live Groq (`"mode": "groq"`) or the offline mock, the configured model, the model that actually answered last (`last_model`), whether a fallback is currently in use (`on_fallback`), and any models currently skipped after a rate limit or a `model_not_found` (`cooling_down`, with seconds remaining).
 
 ### Running the tests
 
@@ -93,8 +93,8 @@ process. When it cannot serve a request:
 | Situation | Behaviour |
 |---|---|
 | `model_not_found` (key has no access) | Model skipped for 15 min, next candidate tried |
-| Rate limit clearing in seconds (per-minute cap) | **Waits it out on the same model** rather than switching |
-| Rate limit clearing in minutes (per-day cap) | Model skipped for 60s, next candidate tried |
+| Rate limit clearing within 90s (per-minute cap) | **Waits it out on the same model** rather than switching |
+| Rate limit clearing later than that (per-day cap) | Model skipped for 60s, next candidate tried |
 | Auth error, malformed request | Raised — never masked by a fallback |
 
 Every fallback answer logs a `FALLBACK IN USE` warning naming the model that served
