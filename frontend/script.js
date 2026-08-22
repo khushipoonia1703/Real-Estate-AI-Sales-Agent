@@ -19,6 +19,7 @@
   const fab = document.getElementById("fab");
   const panel = document.getElementById("panel");
   const nudge = document.getElementById("nudge");
+  const backBtn = document.getElementById("backToChat");
 
   const OPENING_LINE =
     "Hi, this is Ava from Northstar Homes, about Northstar One in Sector 79, Gurugram. Are you looking at a two BHK or a three BHK?";
@@ -175,14 +176,23 @@
     rawToggle.textContent = "Show raw JSON";
     rawToggle.setAttribute("aria-expanded", "false");
 
+    clearBanner();
     analyticsBox.classList.remove("hidden");
-    analyticsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    panel.classList.add("analytics-open");
+    analyticsBox.scrollTop = 0;
   }
 
   rawToggle.addEventListener("click", () => {
     const hidden = analyticsJson.classList.toggle("hidden");
     rawToggle.textContent = hidden ? "Show raw JSON" : "Hide raw JSON";
     rawToggle.setAttribute("aria-expanded", hidden ? "false" : "true");
+  });
+
+  backBtn.addEventListener("click", () => {
+    panel.classList.remove("analytics-open");
+    analyticsBox.classList.add("hidden");
+    chat.scrollTop = chat.scrollHeight;
+    input.focus();
   });
 
   async function postJson(url, body) {
@@ -264,6 +274,7 @@
     sessionId = null;
     chat.innerHTML = "";
     bubble(OPENING_LINE, "agent");
+    panel.classList.remove("analytics-open");
     analyticsBox.classList.add("hidden");
     analyticsJson.textContent = "";
     analyticsJson.classList.add("hidden");

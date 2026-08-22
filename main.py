@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -61,6 +62,15 @@ from services.chat_service import (
 )
 from storage.conversation_store import store
 
+# Nothing else in the app configures logging, and the fallback warning below is
+# the whole point of logging here - make sure it lands somewhere visible. Under
+# uvicorn the root logger is left alone, so this stays in effect.
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    )
+
 logger = logging.getLogger(__name__)
 
 __version__ = "1.0.0"
@@ -70,12 +80,39 @@ __version__ = "1.0.0"
 # LLM access
 # =========================================================================== #
 
-# Providers retire models. If the configured one is gone, fall back rather than
-# taking the whole agent down - and say so in the log, never silently.
-MODEL_FALLBACKS = ("openai/gpt-oss-120b", "llama-3.1-8b-instant")
+# Providers retire models, and a given API key does not necessarily have access
+# to every model in the catalogue. If the configured one cannot serve a request
+# we fall back rather than taking the whole agent down - but never quietly:
+# every fallback answer is logged as a warning, on every single request, because
+# the fallback is a different model on a different bill.
+MODEL_FALLBACKS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b")
 _MODEL_GONE = ("model_not_found", "does not exist", "decommissioned", "deprecated")
 
-_active_model: Optional[str] = None
+# A rate limit is transient and specific to one model: the next candidate has its
+# own budget, so hop instead of failing the customer's turn. Kept separate from
+# _MODEL_GONE because the cooldown is different - a per-minute cap clears in
+# seconds, a per-day cap in minutes, neither in 15 minutes.
+_RATE_LIMITED = ("rate limit", "rate_limit", "429", "too many requests")
+
+# A model the API rejects as unavailable is skipped for this long, then probed
+# again. Bounded, not permanent: access can be granted, and a retired name can
+# come back. Nothing is ever pinned for the lifetime of the process.
+MODEL_RETRY_AFTER_SECONDS = 900
+
+# How long a rate-limited model is skipped. Short: the configured model should
+# come back the moment its budget does, not fifteen minutes later.
+RATE_LIMIT_RETRY_AFTER_SECONDS = 60
+
+# A per-minute token cap clears in seconds, so waiting beats hopping to a model
+# that may itself be out of daily budget. A wait longer than this means a daily
+# cap: give up on that model and try the next one instead.
+MAX_INLINE_WAIT_SECONDS = 90
+WAIT_RETRIES_PER_MODEL = 3
+
+# model name -> time.monotonic() deadline before which we do not re-attempt it.
+_unavailable_until: Dict[str, float] = {}
+# Purely for reporting on /health - never used to choose a model.
+_last_model: Optional[str] = None
 _client = None
 
 
@@ -86,10 +123,21 @@ def is_mock() -> bool:
 
 def describe_backend() -> Dict[str, Any]:
     settings = get_settings()
+    if settings.use_mock:
+        return {"mode": "mock", "model": None, "base_url": None}
+    now = time.monotonic()
     return {
-        "mode": "mock" if settings.use_mock else "groq",
-        "model": None if settings.use_mock else (_active_model or settings.groq_model),
-        "base_url": None if settings.use_mock else settings.groq_base_url,
+        "mode": "groq",
+        "model": settings.groq_model,
+        "last_model": _last_model,
+        "on_fallback": _last_model is not None and _last_model != settings.groq_model,
+        "strict": settings.groq_strict_model,
+        "cooling_down": {
+            m: round(until - now, 1)
+            for m, until in _unavailable_until.items()
+            if until > now
+        },
+        "base_url": settings.groq_base_url,
     }
 
 
@@ -113,8 +161,13 @@ def llm_chat(
     """Send a chat completion and return the reply text.
 
     Falls back to the deterministic mock whenever mock mode is on.
+
+    The configured model is always tried first. Short rate limits (a per-minute
+    cap) are waited out on the same model; a model the API says is gone, or that
+    is out of daily budget, is skipped for a bounded window and the next
+    candidate is tried. Auth and bad-request failures are raised, never masked.
     """
-    global _active_model
+    global _last_model
 
     settings = get_settings()
     if settings.use_mock:
@@ -128,35 +181,146 @@ def llm_chat(
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
 
-    candidates = [_active_model or settings.groq_model]
-    candidates += [m for m in MODEL_FALLBACKS if m not in candidates]
+    primary = settings.groq_model
+    candidates = [primary]
+    if not settings.groq_strict_model:
+        candidates += [m for m in MODEL_FALLBACKS if m not in candidates]
+
+    # Skip only what the API has recently rejected, and only until it is due for
+    # another probe. The configured model is re-attempted the moment its window
+    # expires, so a fallback can never become permanent by itself.
+    now = time.monotonic()
+    attempts = [m for m in candidates if _unavailable_until.get(m, 0.0) <= now]
+    if not attempts:
+        attempts = candidates  # everything is cooling down: probe anyway
 
     last_error: Optional[Exception] = None
-    for model in candidates:
+    for model in attempts:
         try:
-            response = _get_client().chat.completions.create(model=model, **kwargs)
+            response = _complete_with_waiting(model, kwargs)
         except Exception as exc:  # noqa: BLE001 - surfaced as one typed error
             last_error = exc
             if any(marker in str(exc).lower() for marker in _MODEL_GONE):
-                logger.warning("Model %s unavailable, trying the next one.", model)
+                _unavailable_until[model] = now + MODEL_RETRY_AFTER_SECONDS
+                logger.warning(
+                    "MODEL UNAVAILABLE: the API rejected %s (%s). "
+                    "Not retrying it for %ds.",
+                    model,
+                    _one_line(exc),
+                    MODEL_RETRY_AFTER_SECONDS,
+                )
                 continue
+            if any(marker in str(exc).lower() for marker in _RATE_LIMITED):
+                _unavailable_until[model] = now + RATE_LIMIT_RETRY_AFTER_SECONDS
+                logger.warning(
+                    "RATE LIMITED: %s is out of budget (%s). "
+                    "Trying the next model; will re-probe %s in %ds.",
+                    model,
+                    _one_line(exc),
+                    model,
+                    RATE_LIMIT_RETRY_AFTER_SECONDS,
+                )
+                continue
+            # Auth, malformed request, anything else: a real failure of a model
+            # we do have. Surface it instead of silently paying for another.
+            logger.error("MODEL ERROR: %s failed: %s", model, _one_line(exc))
             raise LLMError(str(exc)) from exc
 
-        if model != _active_model:
-            if model != settings.groq_model:
-                logger.warning(
-                    "Configured model %s is unavailable; using %s instead.",
-                    settings.groq_model,
-                    model,
-                )
-            _active_model = model
+        _unavailable_until.pop(model, None)
+        _last_model = model
 
-        content = (response.choices[0].message.content or "").strip()
+        if model == primary:
+            logger.info("Responded with the configured model %s.", model)
+        else:
+            # Loud, and on every request - not once per process.
+            logger.warning(
+                "FALLBACK IN USE: %s answered this request, NOT the configured "
+                "%s. You are being billed for %s. Re-probing %s in %ds.",
+                model,
+                primary,
+                model,
+                primary,
+                max(0, round(_unavailable_until.get(primary, now) - now)),
+            )
+
+        content = _strip_reasoning(response.choices[0].message.content or "")
         if not content:
-            raise LLMError("empty completion")
+            raise LLMError(f"empty completion from {model}")
         return content
 
+    if settings.groq_strict_model:
+        raise LLMError(
+            f"configured model {primary} is unavailable and GROQ_STRICT_MODEL is "
+            f"on, so no fallback was attempted: {last_error}"
+        )
     raise LLMError(str(last_error))
+
+
+# Some models (qwen3.6, other reasoning models) emit their scratchpad in the
+# reply body. It must never reach a customer, and a reply that is *only* an
+# unclosed scratchpad means the model spent its whole budget thinking and never
+# answered - which is an empty completion, not a reply.
+_THINK_RE = re.compile(
+    r"<(think|thinking|reasoning)\b[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE
+)
+_OPEN_THINK_RE = re.compile(r"<(think|thinking|reasoning)\b[^>]*>.*", re.DOTALL | re.IGNORECASE)
+
+
+def _strip_reasoning(text: str) -> str:
+    """Remove any chain-of-thought the model put in the reply body."""
+    text = _THINK_RE.sub(" ", text)
+    text = _OPEN_THINK_RE.sub(" ", text)  # truncated block: nothing usable follows
+    return text.strip()
+
+
+_RETRY_MS_RE = re.compile(r"try again in\s*([\d.]+)ms", re.IGNORECASE)
+_RETRY_IN_RE = re.compile(
+    r"try again in\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?", re.IGNORECASE
+)
+
+
+def _retry_after_seconds(exc: Exception) -> Optional[float]:
+    """How long the API says to wait, in seconds. None if it did not say."""
+    text = str(exc)
+    ms = _RETRY_MS_RE.search(text)
+    if ms:
+        return float(ms.group(1)) / 1000.0
+    match = _RETRY_IN_RE.search(text)
+    if not match or not (match.group(1) or match.group(2)):
+        return None
+    return float(match.group(1) or 0) * 60.0 + float(match.group(2) or 0)
+
+
+def _complete_with_waiting(model: str, kwargs: Dict[str, Any]):
+    """One completion, waiting out short rate limits on this same model.
+
+    A per-minute cap clears in seconds: sleeping is far better than switching to
+    a different model on a different bill. A daily cap reports minutes, which is
+    too long to block a customer on - that is re-raised so the caller can hop.
+    """
+    for attempt in range(WAIT_RETRIES_PER_MODEL + 1):
+        try:
+            return _get_client().chat.completions.create(model=model, **kwargs)
+        except Exception as exc:  # noqa: BLE001 - re-raised unless it is a short cap
+            if attempt >= WAIT_RETRIES_PER_MODEL:
+                raise
+            if not any(mk in str(exc).lower() for mk in _RATE_LIMITED):
+                raise
+            wait = _retry_after_seconds(exc)
+            if wait is None or wait > MAX_INLINE_WAIT_SECONDS:
+                raise
+            logger.warning(
+                "RATE LIMITED (short): %s is capped for %.1fs - waiting rather "
+                "than switching models (attempt %d/%d).",
+                model, wait, attempt + 1, WAIT_RETRIES_PER_MODEL,
+            )
+            time.sleep(wait + 1.0)
+    raise RuntimeError("unreachable")  # pragma: no cover
+
+
+def _one_line(exc: Exception) -> str:
+    """Collapse an SDK exception to something readable in a log line."""
+    return " ".join(str(exc).split())[:300]
 
 
 # =========================================================================== #

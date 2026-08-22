@@ -46,6 +46,7 @@ class Settings:
     groq_api_key: str
     groq_model: str
     groq_base_url: str
+    groq_strict_model: bool
     llm_mock: bool
     temperature: float
     max_tokens: int
@@ -63,10 +64,13 @@ def get_settings() -> Settings:
     """Return the process-wide settings singleton."""
     return Settings(
         groq_api_key=os.getenv("GROQ_API_KEY", "").strip(),
-        groq_model=os.getenv("GROQ_MODEL", "").strip() or "llama-3.3-70b-versatile",
+        groq_model=os.getenv("GROQ_MODEL", "").strip() or "openai/gpt-oss-safeguard-20b",
         groq_base_url=(
             os.getenv("GROQ_BASE_URL", "").strip() or "https://api.groq.com/openai/v1"
         ),
+        # On: never let a fallback model answer. A request the configured model
+        # cannot serve fails loudly instead of being billed to another model.
+        groq_strict_model=_flag("GROQ_STRICT_MODEL"),
         llm_mock=_flag("LLM_MOCK"),
         temperature=_float("LLM_TEMPERATURE", 0.4),
         max_tokens=_int("LLM_MAX_TOKENS", 400),

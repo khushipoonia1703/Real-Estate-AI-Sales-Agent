@@ -4,7 +4,7 @@ An AI sales consultant ("**Ava**") for a fictional real-estate project, **Norths
 
 The focus of this project is **prompt engineering and agent behaviour**. The system prompt (`prompts/system_prompt.py`) is the heart of the solution; the code around it exists to make that prompt observable, testable, and demonstrable.
 
-Backend: **FastAPI (Python)**. LLM: **Groq** (Llama 3.3 / GPT-OSS) via its OpenAI-compatible API.
+Backend: **FastAPI (Python)**. LLM: **Groq** (GPT-OSS family) via its OpenAI-compatible API.
 
 ---
 
@@ -26,6 +26,7 @@ pip install -r requirements.txt
 # 3. Set up your environment file
 copy .env.example .env      # Windows   (macOS/Linux: cp .env.example .env)
 # then open .env and paste your GROQ_API_KEY
+# .env.example documents the optional settings (model, strict mode, sampling)
 
 # 4. Start the server
 uvicorn main:app --reload
@@ -41,7 +42,7 @@ uvicorn main:app --reload --port 8010
 
 and open the matching URL (http://localhost:8010).
 
-**Check the backend:** open `http://localhost:8000/health` — it shows whether you're on live Groq (`"mode": "groq"`) or the offline mock, and which model is active.
+**Check the backend:** open `http://localhost:8000/health` — it shows whether you're on live Groq (`"mode": "groq"`) or the offline mock, the configured model, the model that actually answered last (`last_model`), whether a fallback is currently in use (`on_fallback`), and any models cooling down after a rate limit.
 
 ### Running the tests
 
@@ -83,13 +84,40 @@ Each customer message hits `POST /chat`. The app appends it to that session's hi
 
 ---
 
+## Model selection and rate limits
+
+The configured model (`GROQ_MODEL`, default `openai/gpt-oss-safeguard-20b`) is tried
+first on **every** request — it is never pinned to a fallback for the life of the
+process. When it cannot serve a request:
+
+| Situation | Behaviour |
+|---|---|
+| `model_not_found` (key has no access) | Model skipped for 15 min, next candidate tried |
+| Rate limit clearing in seconds (per-minute cap) | **Waits it out on the same model** rather than switching |
+| Rate limit clearing in minutes (per-day cap) | Model skipped for 60s, next candidate tried |
+| Auth error, malformed request | Raised — never masked by a fallback |
+
+Every fallback answer logs a `FALLBACK IN USE` warning naming the model that served
+it, **on every request**, because a fallback is a different model on a different
+bill. Set `GROQ_STRICT_MODEL=1` to forbid fallbacks entirely: a request the
+configured model cannot serve then fails loudly instead of being billed elsewhere.
+
+**Budgets are the real constraint.** The system prompt is ~6,100 tokens and is
+resent with every turn, so on Groq's `on_demand` tier (200,000 tokens/day and
+8,000 tokens/minute, counted **per model**) one model is good for roughly 30 turns
+a day. The fallback chain helps because each model has its own budget. Note that
+`LLM_MAX_TOKENS` also counts the model's internal reasoning, not just visible
+text — set too low, replies get truncated mid-sentence.
+
+---
+
 ## Key assumptions
 
 - **The fact sheet is the whole truth.** The only property facts Ava may state are the ones in the prompt: the project name, Sector 79 Gurugram, 2 BHK and 3 BHK, and the two starting prices (₹1.35 crore / ₹1.75 crore). Everything else (carpet area, possession date, amenities, EMI, discounts, availability) is treated as unknown and deferred to the human team.
 - **Neighbourhood landmarks are a team-verified list.** Ava may name a few nearby schools, malls, markets, and hospitals from an explicit verified list in the prompt, but never invents distances, travel times, or places outside that list.
 - **Voice + chat share one prompt.** The prompt is written to be voice-safe (short, speakable, one question per turn); actual telephony/TTS is not wired up in this take-home — voice support is addressed at the prompt level.
 - **Booking is simulated.** `booking_service.py` mimics a booking system, including a deterministic failure path, rather than integrating a real calendar/CRM.
-- **Groq is the LLM provider.** Used through its OpenAI-compatible API, so the provider is swappable. The default model `llama-3.3-70b-versatile` returns `model_not_found` on some Groq keys; the app automatically falls back to `openai/gpt-oss-120b`.
+- **Groq is the LLM provider.** Used through its OpenAI-compatible API, so the provider is swappable. **Model access varies by key:** the Llama models (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) return `model_not_found` on some keys, and `groq/compound*` routes to Llama internally so it fails the same way. The default is therefore `openai/gpt-oss-safeguard-20b`, with `openai/gpt-oss-120b` and `openai/gpt-oss-20b` as fallbacks. Check what your key actually has with `GET /openai/v1/models`.
 
 ## Known limitations
 
@@ -97,10 +125,12 @@ Each customer message hits `POST /chat`. The app appends it to that session's hi
 - **The offline mock is a separate imitation.** For zero-key running and tests, a deterministic rule-based mock stands in for the model. It mirrors the prompt's intended behaviour but is hand-written, so it won't reproduce every nuance of the live LLM (for example, the verified-landmark answers appear on the live Groq bot, not in mock mode).
 - **Language mirroring is instruction-based.** English/Hindi/Hinglish detection for the live agent is handled by the prompt, not a hard classifier — the right call for Hinglish, but edge cases are possible.
 - **Analytics quality depends on the model.** Extracted fields are coerced to a fixed schema and overridden by known system facts (booking outcome, opt-out) so they never fabricate, but the free-text summary quality tracks the model.
-- **No auth or rate-limiting.** Out of scope for a demo; do not expose the endpoints publicly as-is.
+- **Provider budgets, not the code, are the practical ceiling.** At ~6,100 prompt tokens per turn against a 200,000 tokens/day per-model cap, a day's worth of demoing is roughly 30 turns per model. When every model in the chain is exhausted the agent returns its "having trouble on my end" fallback reply rather than failing the request.
+- **Reasoning models need care.** Some models (`qwen/qwen3.6-27b`) emit their chain-of-thought in the reply body; the LLM layer strips `<think>` blocks, but a model that spends its whole token budget reasoning produces no answer at all. The GPT-OSS models used here do not have this problem.
+- **No auth or inbound rate-limiting.** Out of scope for a demo; do not expose the endpoints publicly as-is.
 
 ## AI tools used
 
-- **Groq** — LLM inference (Llama 3.3 70B, with `openai/gpt-oss-120b` as the working fallback) via the OpenAI-compatible API.
+- **Groq** — LLM inference (`openai/gpt-oss-safeguard-20b`, with `openai/gpt-oss-120b` and `openai/gpt-oss-20b` as fallbacks) via the OpenAI-compatible API.
 - **OpenAI Python SDK** — as the client library pointed at Groq's endpoint.
 - **Claude (Anthropic)** — used as an AI pair-programmer to help design the prompt, structure the code, and write the tests and documentation.

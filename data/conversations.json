@@ -1,1 +1,901 @@
-{}
+{
+  "sess_daed8385e56f": {
+    "session_id": "sess_daed8385e56f",
+    "created_at": "2026-08-21T10:24:56+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": null,
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hey",
+        "ts": "2026-08-21T10:24:56+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi, this is Ava from Northstar Homes. Northstar One is in Sector 79, Gurugram. Are you interested in a 2 BHK or a 3 BHK?",
+        "ts": "2026-08-21T10:25:00+00:00"
+      }
+    ]
+  },
+  "sess_0f5ccb5767c4": {
+    "session_id": "sess_0f5ccb5767c4",
+    "created_at": "2026-08-21T10:25:10+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": null,
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi",
+        "ts": "2026-08-21T10:25:10+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi, this is Ava from Northstar Homes. Northstar One is in Sector 79, Gurugram. Are you interested in a 2 BHK or a 3 BHK?",
+        "ts": "2026-08-21T10:25:42+00:00"
+      }
+    ]
+  },
+  "sess_c4fe8fd8954e": {
+    "session_id": "sess_c4fe8fd8954e",
+    "created_at": "2026-08-21T10:45:34+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "Khushi Poonia",
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": "investment",
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 4bhk",
+        "ts": "2026-08-21T10:45:34+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "We currently have 2 BHKs starting at ₹1.35 Cr and 3 BHKs starting at ₹1.75 Cr. Would you like more details on either of those options?",
+        "ts": "2026-08-21T10:45:36+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yeah tell me more about 3 BHK",
+        "ts": "2026-08-21T10:45:54+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr and are located in Sector 79, Gurugram. Is this for your own home or as an investment?",
+        "ts": "2026-08-21T10:46:20+00:00"
+      },
+      {
+        "role": "user",
+        "content": "It is for investment. Aur 2 BHK?",
+        "ts": "2026-08-21T10:47:15+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "2 BHKs start at ₹1.35 Cr. For an investment, a site visit helps you assess the value. Would Saturday morning or Sunday afternoon work for you?",
+        "ts": "2026-08-21T10:47:16+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Main dono din busy hu.",
+        "ts": "2026-08-21T10:47:37+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Samajh gayi, aapko koi aur din ya samay theek rahega?",
+        "ts": "2026-08-21T10:48:05+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Haan, fix Monday.",
+        "ts": "2026-08-21T10:48:19+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Great, Monday works. Which unit would you like to see, the 2 BHK or the 3 BHK?",
+        "ts": "2026-08-21T10:48:54+00:00"
+      },
+      {
+        "role": "user",
+        "content": "3 BHK. Sector 79 mein aas paas koi accha school ya hospital hai?",
+        "ts": "2026-08-21T10:49:05+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Mount Olympus School, The Shri Ram Wonder Years, aur MET Hospital (Sector 78) aapke nazdeek hain; exact distance ya sabse paas kaun hai, main confirm nahi kar sakti, lekin team se poori list bhejwa sakti hoon. Monday ko aapko subah kaunsa samay theek rahega?",
+        "ts": "2026-08-21T10:49:06+00:00"
+      },
+      {
+        "role": "user",
+        "content": "11 am",
+        "ts": "2026-08-21T10:49:31+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Monday at 11 am for a 3 BHK, noted. Could I have your name, please?",
+        "ts": "2026-08-21T10:49:54+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Khushi Poonia",
+        "ts": "2026-08-21T10:50:04+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Thanks, Khushi. So Monday at 11 am to see a 3 BHK, is that correct? May I have your phone number for the confirmation?",
+        "ts": "2026-08-21T10:50:46+00:00"
+      },
+      {
+        "role": "user",
+        "content": "I love cafe hopping, are there any cafes nearby?",
+        "ts": "2026-08-21T10:51:55+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "There are a few cafés nearby, such as URBAN 79 CAFE, Sip N Spice, and Blossoms Mini Mart & Cafe; I can send you the full list if you’d like. Could you share the best phone number for the Monday 11 am visit?",
+        "ts": "2026-08-21T10:51:56+00:00"
+      },
+      {
+        "role": "user",
+        "content": "+91 171717171717",
+        "ts": "2026-08-21T10:52:21+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "So, Khushi, you're set for a Monday 11 am visit to see a 3 BHK, and I’ll send the confirmation to +91 171717171717. Does that look good?",
+        "ts": "2026-08-21T10:52:44+00:00"
+      }
+    ]
+  },
+  "sess_6fbc2124005d": {
+    "session_id": "sess_6fbc2124005d",
+    "created_at": "2026-08-21T11:07:33+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "Khushi Poonia",
+      "phone": "9171717171",
+      "language": "hinglish",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": "investment",
+      "timeline": null,
+      "site_visit_status": "booked",
+      "site_visit_datetime": "Monday 11 am",
+      "booking_reference": "NSH-B97ACBAE",
+      "booking_attempts": 1,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 3 BHK",
+        "ts": "2026-08-21T11:07:33+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr. Is this for your own residence or as an investment?",
+        "ts": "2026-08-21T11:07:34+00:00"
+      },
+      {
+        "role": "user",
+        "content": "It is for investment purpose",
+        "ts": "2026-08-21T11:07:57+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "What budget range are you planning for this investment?",
+        "ts": "2026-08-21T11:08:17+00:00"
+      },
+      {
+        "role": "user",
+        "content": "1 Cr",
+        "ts": "2026-08-21T11:08:34+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I hear you—our 3 BHK units start at ₹1.75 Cr, which is above a ₹1 Cr budget. Would you like to schedule a site visit to see the project and discuss it further?",
+        "ts": "2026-08-21T11:08:35+00:00"
+      },
+      {
+        "role": "user",
+        "content": "But it is way more than my budget",
+        "ts": "2026-08-21T11:09:12+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I understand—our 3 BHK starts at ₹1.75 Cr, which is above your ₹1 Cr target. Would a brief site visit this weekend help you see if it could work for your investment plans?",
+        "ts": "2026-08-21T11:09:13+00:00"
+      },
+      {
+        "role": "user",
+        "content": "What about 4 BHK",
+        "ts": "2026-08-21T11:09:37+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "We only have 2 BHK and 3 BHK options at Northstar One; I don’t have details on a 4 BHK. Would you like me to have the team check if any other configurations are available?",
+        "ts": "2026-08-21T11:09:56+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Sector 79 mein koi achhe schools hai?",
+        "ts": "2026-08-21T11:10:42+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sector 79 mein Mount Olympus School aur The Shri Ram Wonder Years jaise schools hain. Exact distance ya kaun sabse paas hai, mujhe pata nahi hai, lekin team se poori list bhejwa sakti hoon. Kya aap weekend site visit schedule karna chahenge?",
+        "ts": "2026-08-21T11:10:44+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Main weeken per busy hu",
+        "ts": "2026-08-21T11:12:21+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, I can arrange a weekday visit. Could you share your name, please?",
+        "ts": "2026-08-21T11:12:22+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Khushi Poonia",
+        "ts": "2026-08-21T11:12:47+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Which weekday and time would be convenient for you to visit?",
+        "ts": "2026-08-21T11:13:10+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Monday at 11 am",
+        "ts": "2026-08-21T11:13:25+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Great, Khushi, Monday at 11 am works. Could you share a phone number for the confirmation?",
+        "ts": "2026-08-21T11:14:01+00:00"
+      },
+      {
+        "role": "user",
+        "content": "+ 91 171717171",
+        "ts": "2026-08-21T11:14:16+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "So that's Khushi Poonia, Monday at 11 am, phone 9171717171. Shall I lock that in?",
+        "ts": "2026-08-21T11:14:54+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Haan",
+        "ts": "2026-08-21T11:15:11+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Booking that for you now.",
+        "ts": "2026-08-21T11:15:48+00:00"
+      },
+      {
+        "role": "system",
+        "content": "BOOKING RESULT: SUCCESS. The site visit is confirmed for Monday 11 am. Confirmation id NSH-B97ACBAE. Confirm this to the customer in one or two short sentences, repeat the day and time, mention they will get a text, and close warmly.",
+        "ts": "2026-08-21T11:15:48+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Booking that for you now.",
+        "ts": "2026-08-21T11:15:57+00:00"
+      }
+    ]
+  },
+  "sess_8a426bf58b91": {
+    "session_id": "sess_8a426bf58b91",
+    "created_at": "2026-08-21T11:32:26+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi, I'm looking for a 3 BHK",
+        "ts": "2026-08-21T11:32:26+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi, I'm Ava from Northstar Homes. Three BHKs start at ₹1.75 Cr. Are you looking to live there or as an investment?",
+        "ts": "2026-08-21T11:32:27+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Book visit",
+        "ts": "2026-08-21T11:32:32+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T11:32:32+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Sure",
+        "ts": "2026-08-21T11:32:41+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T11:32:41+00:00"
+      }
+    ]
+  },
+  "sess_fc03e68f8a53": {
+    "session_id": "sess_fc03e68f8a53",
+    "created_at": "2026-08-21T11:40:59+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for 3BHK",
+        "ts": "2026-08-21T11:40:59+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T11:40:59+00:00"
+      }
+    ]
+  },
+  "sess_84d2c7edabcc": {
+    "session_id": "sess_84d2c7edabcc",
+    "created_at": "2026-08-21T12:58:37+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": "investment",
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 3 BHK",
+        "ts": "2026-08-21T12:58:37+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr. Are you looking to live there or as an investment?",
+        "ts": "2026-08-21T12:58:40+00:00"
+      },
+      {
+        "role": "user",
+        "content": "It is for investment.",
+        "ts": "2026-08-21T12:59:11+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T12:59:12+00:00"
+      },
+      {
+        "role": "user",
+        "content": "sure",
+        "ts": "2026-08-21T12:59:24+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T12:59:24+00:00"
+      }
+    ]
+  },
+  "sess_bb58a8edd3a0": {
+    "session_id": "sess_bb58a8edd3a0",
+    "created_at": "2026-08-21T13:28:05+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "For Illegal Activities",
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi, I'm looking for a 3bHK",
+        "ts": "2026-08-21T13:28:05+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "3 BHKs start at ₹1.75 Cr. What budget range are you working with?",
+        "ts": "2026-08-21T13:28:07+00:00"
+      },
+      {
+        "role": "user",
+        "content": "4 Cr",
+        "ts": "2026-08-21T13:28:22+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Your budget of ₹4 Cr is comfortably above the starting price. Is this purchase for living in or as an investment?",
+        "ts": "2026-08-21T13:28:51+00:00"
+      },
+      {
+        "role": "user",
+        "content": "For illegal activities",
+        "ts": "2026-08-21T13:33:35+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I’m sorry, but I can’t help with that.",
+        "ts": "2026-08-21T13:33:36+00:00"
+      }
+    ]
+  },
+  "sess_43dceaff5b70": {
+    "session_id": "sess_43dceaff5b70",
+    "created_at": "2026-08-21T13:41:33+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "2BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 2 BHK",
+        "ts": "2026-08-21T13:41:33+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Two BHKs start at ₹1.35 Cr. What budget range are you working with?",
+        "ts": "2026-08-21T13:41:34+00:00"
+      }
+    ]
+  },
+  "sess_56613792243b": {
+    "session_id": "sess_56613792243b",
+    "created_at": "2026-08-21T13:43:19+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "For Investment",
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": "investment",
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 3 BHK",
+        "ts": "2026-08-21T13:43:19+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr. Is this for living or investment?",
+        "ts": "2026-08-21T13:43:20+00:00"
+      },
+      {
+        "role": "user",
+        "content": "For investment",
+        "ts": "2026-08-21T13:43:37+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "What budget range are you working with?",
+        "ts": "2026-08-21T13:44:02+00:00"
+      },
+      {
+        "role": "user",
+        "content": "4 Cr",
+        "ts": "2026-08-21T13:44:20+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Your ₹4 Cr budget is well above the starting price of ₹1.75 Cr for a 3 BHK. Would you like to book a site visit this weekend?",
+        "ts": "2026-08-21T13:44:53+00:00"
+      },
+      {
+        "role": "user",
+        "content": "What about 4 BHKS",
+        "ts": "2026-08-21T13:45:22+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I’m not sure about a 4 BHK option. Let me confirm with the team. Would you like me to arrange a site visit so you can see what’s available?",
+        "ts": "2026-08-21T13:45:45+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yes",
+        "ts": "2026-08-21T13:46:10+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure! When would you like to visit—Saturday or Sunday, and what time works best for you? Also, could you share a phone number for the confirmation?",
+        "ts": "2026-08-21T13:46:36+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Main dono din busy hu",
+        "ts": "2026-08-21T13:46:57+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, could you suggest a day and time that works for you? If that’s difficult, I can arrange a callback to find a suitable slot.",
+        "ts": "2026-08-21T13:47:26+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Let's fix Monday 5 pm",
+        "ts": "2026-08-21T13:47:48+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T13:48:18+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yes please",
+        "ts": "2026-08-21T13:48:35+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, I’ll arrange for a sales manager to call you back. Could you share a phone number and a convenient time for the call?",
+        "ts": "2026-08-21T13:49:13+00:00"
+      }
+    ]
+  },
+  "sess_6b64bb481dbd": {
+    "session_id": "sess_6b64bb481dbd",
+    "created_at": "2026-08-21T14:27:04+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": "Yeah",
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": "investment",
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Im looking for a 3 BHK",
+        "ts": "2026-08-21T14:27:04+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Three BHKs start at ₹1.75 Cr. What budget range are you working with?",
+        "ts": "2026-08-21T14:27:07+00:00"
+      },
+      {
+        "role": "user",
+        "content": "2-3CR",
+        "ts": "2026-08-21T14:27:27+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it. Your ₹2‑3 Cr budget fits the 3 BHK range. Are you planning to live there or invest?",
+        "ts": "2026-08-21T14:27:45+00:00"
+      },
+      {
+        "role": "user",
+        "content": "It is for investment purpose",
+        "ts": "2026-08-21T14:28:11+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "When would you like to visit the site?",
+        "ts": "2026-08-21T14:28:35+00:00"
+      },
+      {
+        "role": "user",
+        "content": "What about 4 BHKS",
+        "ts": "2026-08-21T14:28:51+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I’m sorry, we don’t have a 4 BHK option at Northstar One. Would you like to see a 3 BHK instead?",
+        "ts": "2026-08-21T14:29:24+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yeah I am. Sector 79 mein aas paas koi achhe schools hain kya?",
+        "ts": "2026-08-21T14:30:12+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Mount Olympus School, The Shri Ram Wonder Years, and MET Hospital are in the area. I don’t have exact distances, but I can get the full list for you. Would you like me to send that and set up a site visit?",
+        "ts": "2026-08-21T14:30:13+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yes arrange the site visit",
+        "ts": "2026-08-21T14:31:12+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure! May I have your name, please?",
+        "ts": "2026-08-21T14:31:13+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Khushi Poonia",
+        "ts": "2026-08-21T14:31:37+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T14:31:37+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yeah sure",
+        "ts": "2026-08-21T14:31:54+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T14:31:54+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Let's schedule a site visit",
+        "ts": "2026-08-21T15:13:03+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T15:13:03+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Yeah",
+        "ts": "2026-08-21T15:13:15+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T15:13:15+00:00"
+      }
+    ]
+  },
+  "sess_bb9a22b708ba": {
+    "session_id": "sess_bb9a22b708ba",
+    "created_at": "2026-08-21T15:15:34+00:00",
+    "ended": false,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "I'm looking for a 3 BHK",
+        "ts": "2026-08-21T15:15:34+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Sorry, I am having trouble on my end right now. Can I have a colleague call you back instead?",
+        "ts": "2026-08-21T15:15:34+00:00"
+      }
+    ]
+  },
+  "sess_9cb5beec1fa3": {
+    "session_id": "sess_9cb5beec1fa3",
+    "created_at": "2026-08-21T15:58:10+00:00",
+    "ended": true,
+    "force_booking_failure": false,
+    "profile": {
+      "name": null,
+      "phone": null,
+      "language": "english",
+      "configuration_interest": "3BHK",
+      "budget_signal": null,
+      "purpose": null,
+      "timeline": null,
+      "site_visit_status": "none",
+      "site_visit_datetime": null,
+      "booking_reference": null,
+      "booking_attempts": 0,
+      "do_not_contact": false,
+      "escalated_to_human": false
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi Ava, I'm looking for 4 BHKs",
+        "ts": "2026-08-21T15:58:10+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "We don’t have a 4 BHK at Northstar One, only 2 and 3 BHKs. Did you mean a 3 BHK?",
+        "ts": "2026-08-21T15:58:10+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Okay 3 BHK works",
+        "ts": "2026-08-21T15:58:30+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "3 BHKs start at ₹1.75 Cr. What budget range are you working with?",
+        "ts": "2026-08-21T15:58:30+00:00"
+      },
+      {
+        "role": "user",
+        "content": "1 Cr",
+        "ts": "2026-08-21T15:58:39+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I hear that. The 3 BHK starts at ₹1.75 Cr. Would you like to visit the site to see what’s available?",
+        "ts": "2026-08-21T15:58:40+00:00"
+      },
+      {
+        "role": "user",
+        "content": "No it's too expensive",
+        "ts": "2026-08-21T15:59:07+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "I hear you. The 3 BHK starts at ₹1.75 Cr. A quick site visit could give you a better idea of what’s available. Would you like to book a visit this weekend?",
+        "ts": "2026-08-21T15:59:07+00:00"
+      },
+      {
+        "role": "user",
+        "content": "No",
+        "ts": "2026-08-21T16:00:07+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it. If you’d like more details or a quick call to discuss options, just let me know.",
+        "ts": "2026-08-21T16:00:07+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Okay thanks",
+        "ts": "2026-08-21T16:00:29+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Thanks for chatting! If anything changes, we’re here. Have a great day.",
+        "ts": "2026-08-21T16:00:29+00:00"
+      }
+    ]
+  }
+}

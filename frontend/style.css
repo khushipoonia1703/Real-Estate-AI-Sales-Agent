@@ -193,11 +193,12 @@ body {
 /* --------------------------------------------------------------------- */
 
 .panel {
-  /* inset:0 + margin:auto with an explicit width and height centres the column
-     both ways, and leaves transform free for the open/close animation. */
+  /* Docked to the right edge; auto block margins centre it vertically without
+     touching the horizontal placement, and transform stays free for the
+     open/close animation. */
   position: fixed;
-  inset: 0;
-  margin: auto;
+  inset: 0 28px 0 auto;
+  margin: auto 0;
   width: min(384px, calc(100vw - 24px));
   height: min(95vh, 940px);
   background: var(--panel);
@@ -492,6 +493,41 @@ button.ghost:hover { color: var(--text); }
 }
 
 .hidden { display: none; }
+
+
+/* --------------------------------------------------------------------- */
+/* Full-panel analytics view (takes over the chat area once chat ends)     */
+/* --------------------------------------------------------------------- */
+
+.panel.analytics-open .chat,
+.panel.analytics-open .banner,
+.panel.analytics-open .composer { display: none; }
+
+.panel.analytics-open .analytics {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  margin: 14px;
+  overflow-y: auto;
+}
+
+.analytics-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.analytics-title {
+  font-size: 10.5px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.back-to-chat { padding: 5px 10px; font-size: 12px; }
 
 /* --------------------------------------------------------------------- */
 /* Small screens                                                          */

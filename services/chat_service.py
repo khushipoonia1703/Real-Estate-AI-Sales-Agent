@@ -390,9 +390,12 @@ def messages_for(session: Session, channel: str = "chat") -> List[Dict[str, str]
 
 def clean_reply(text: str) -> str:
     """Strip anything that is not plain speech: markdown, emojis, control lines."""
-    text = BOOK_TOKEN_RE.sub("", text)
+    # Substitute a space, not an empty string: removing an inline token must not
+    # weld the words on either side of it together ("confirmation?Sure thing").
+    # The trailing whitespace collapse below tidies up any doubles.
+    text = BOOK_TOKEN_RE.sub(" ", text)
     text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
-    text = _EMOJI_RE.sub("", text)
+    text = _EMOJI_RE.sub(" ", text)
     lines = []
     for line in text.splitlines():
         line = re.sub(r"^\s*(?:[-*•·>]+|#{1,6}|\d+[.)])\s+", "", line)
